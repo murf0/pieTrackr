@@ -1,7 +1,5 @@
 package se.murf.pietrackr;
 
-import java.io.IOException;
-import java.util.Date;
 
 /**
  * @author Murf Mellgren 20140414
@@ -33,5 +31,6 @@ public class PieTrackr  {
 		 * Disconnect MQTT
 		 */
 		sender.disconnect();
+		GpsHandler gps = new GpsHandler();
     }
 }

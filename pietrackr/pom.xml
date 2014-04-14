@@ -40,5 +40,10 @@
     <packaging>jar</packaging>
     <version>0.4.0</version>
   </dependency>
+    <dependency>
+    	<groupId>de.taimos</groupId>
+    	<artifactId>gpsd4java</artifactId>
+    	<version>1.2.0</version>
+    </dependency>
   </dependencies>
 </project>
