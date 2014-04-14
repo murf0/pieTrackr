@@ -10,22 +10,28 @@ import java.util.Date;
  */
 public class PieTrackr  {
 	private static Configuration config;
-	private static Connect connection;
 	
 	public static void main( String[] args ) throws Exception {
 		/**
 		 * Parse Configuration
 		 */
 		config = new Configuration(args);
+		
 		/**
 		 * Connect to MQTT
 		 */
-		connection = new Connect(config);
+		InitiateMQTT sender = new InitiateMQTT(config);
 		
 		/**
 		 * Send Message to MQTT
-		 */
+		 **/
 		
-        System.out.println( "Hello World!" );
+		sender.SendMsg("VERY2");
+		sender.SendMsg("VERY","Mine/TEST");
+		sender.SendMsg("VERY2");
+		/**
+		 * Disconnect MQTT
+		 */
+		sender.disconnect();
     }
 }

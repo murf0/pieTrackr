@@ -4,6 +4,8 @@
 package se.murf.pietrackr;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
@@ -19,7 +21,7 @@ public class Configuration {
 	 * 
 	 */
 	private static final String HELP_OPTION = "help";
-	private static final String OPTION_PUSH = "pushtopic";
+	private static final String OPTION_PUSH = "topic";
 	private static final String OPTION_SERVER = "server";
 	private static final String OPTION_PORT = "port";
 	private static final String OPTION_CLIENTID = "clientid";
@@ -30,7 +32,7 @@ public class Configuration {
 		OptionParser parser = new OptionParser() {
 			{
 				accepts(HELP_OPTION, "Shows this help message.");
-				accepts(OPTION_PUSH, "Topic to push to.").withRequiredArg().describedAs("pushtopic").ofType(String.class);
+				accepts(OPTION_PUSH, "Topic to push to.").withRequiredArg().describedAs("topic").ofType(String.class);
 				accepts(OPTION_SERVER, "Server to publish to").withRequiredArg().describedAs("server").ofType(String.class);
 				accepts(OPTION_PORT, "ServerPort.").withRequiredArg().describedAs("port").ofType(String.class);
 				accepts(OPTION_CLIENTID, "Client ID.").withRequiredArg().describedAs("clientid").ofType(String.class);
@@ -68,5 +70,8 @@ public class Configuration {
 	}
 	public  String getCLIENTID() {
 		return (String) options.valueOf(OPTION_CLIENTID);
+	}
+	public static String getDate() {
+		return new SimpleDateFormat("yyyyMMdd HH:mm:ss").format(Calendar.getInstance().getTime());
 	}
 }
