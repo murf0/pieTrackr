@@ -1,5 +1,6 @@
 package se.murf.pietrackr;
 
+import java.util.Arrays;
 
 /**
  * @author Murf Mellgren 20140414
@@ -13,24 +14,23 @@ public class PieTrackr  {
 		/**
 		 * Parse Configuration
 		 */
+		System.out.println(Arrays.toString(args));
 		config = new Configuration(args);
 		
 		/**
 		 * Connect to MQTT
 		 */
-		InitiateMQTT sender = new InitiateMQTT(config);
+		//InitiateMQTT sender = new InitiateMQTT(config);
 		
 		/**
 		 * Send Message to MQTT
 		 **/
-		
-		sender.SendMsg("VERY2");
-		sender.SendMsg("VERY","Mine/TEST");
-		sender.SendMsg("VERY2");
+		//sender.SendMsg("firsttstmsg");
 		/**
 		 * Disconnect MQTT
 		 */
-		sender.disconnect();
-		GpsHandler gps = new GpsHandler();
+		//sender.disconnect();
+		GpsHandler gps = new GpsHandler(config);
+		gps.run();
     }
 }

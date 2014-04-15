@@ -3,13 +3,22 @@
  */
 package se.murf.pietrackr;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+
+import org.apache.commons.codec.binary.Base64;
 
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
+
+import org.apache.commons.io.FileUtils;
 
 /**
  * @author mikael
@@ -21,21 +30,31 @@ public class Configuration {
 	 * 
 	 */
 	private static final String HELP_OPTION = "help";
-	private static final String OPTION_PUSH = "topic";
-	private static final String OPTION_SERVER = "server";
-	private static final String OPTION_PORT = "port";
-	private static final String OPTION_CLIENTID = "clientid";
+	private static final String OPTION_PUSH = "mqtttopic";
+	private static final String OPTION_SERVER = "mqttserver";
+	private static final String OPTION_PORT = "mqttport";
+	private static final String OPTION_CLIENTID = "mqttclientid";
+	private static final String OPTION_GPSDSERVER = "gpsdserver";
+	private static final String OPTION_GPSDPORT = "gpsdport";
+	private static final String WRITE_OPTION = "configfilewriter";
+	
 	private static OptionSet options = null;
 	public Configuration(String[] args) throws Exception {
-		// TODO Auto-generated constructor stub
+		if(new File(args[1]).isFile()) {
+			args = readConfigFile(args[1]);
+		}
 		
 		OptionParser parser = new OptionParser() {
 			{
 				accepts(HELP_OPTION, "Shows this help message.");
-				accepts(OPTION_PUSH, "Topic to push to.").withRequiredArg().describedAs("topic").ofType(String.class);
-				accepts(OPTION_SERVER, "Server to publish to").withRequiredArg().describedAs("server").ofType(String.class);
-				accepts(OPTION_PORT, "ServerPort.").withRequiredArg().describedAs("port").ofType(String.class);
-				accepts(OPTION_CLIENTID, "Client ID.").withRequiredArg().describedAs("clientid").ofType(String.class);
+				accepts(WRITE_OPTION, "Writes pietrackrd.conf");
+				accepts(OPTION_PUSH, "Topic to push to.").withRequiredArg().describedAs("mqtttopic").ofType(String.class);
+				accepts(OPTION_SERVER, "Server to publish to").withRequiredArg().describedAs("mqttserver").ofType(String.class);
+				accepts(OPTION_PORT, "ServerPort.").withRequiredArg().describedAs("mqttport").ofType(String.class);
+				accepts(OPTION_CLIENTID, "MQTT Clientid").withRequiredArg().describedAs("mqttclientid").ofType(String.class);
+				accepts(OPTION_GPSDSERVER, "GPSd ServerIP.").withRequiredArg().describedAs("gpsdserver").ofType(String.class);
+				accepts(OPTION_GPSDPORT, "GPSd Port.").withRequiredArg().describedAs("gpsdport").ofType(int.class);
+
 			}
 		};
 		/*
@@ -52,8 +71,38 @@ public class Configuration {
 			printUsage(parser);
 			System.exit(1);
 		}
+		if(options.hasArgument(WRITE_OPTION)) {
+			writeConfigFile(args,"pietrackrd.conf");
+		}
 	}
+	private String[] readConfigFile(String file) throws ClassNotFoundException {
+		String yourString="N/A";
+		String[] args = null;
+		try {
+			yourString = FileUtils.readFileToString(new File(file));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		ByteArrayInputStream in = new ByteArrayInputStream(Base64.decodeBase64(yourString.getBytes()));
+		try {
+			args = (String[]) new ObjectInputStream(in).readObject();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return args;
+	}
+	private void writeConfigFile(String[] args, String file) {
+	    try {
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			new ObjectOutputStream(out).writeObject(args);
+		    String yourString = new String(Base64.encodeBase64(out.toByteArray()));
+		    FileUtils.writeStringToFile(new File(file), yourString);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	
+	}
 	private static void printUsage(OptionParser parser) throws IOException {
 		System.out.println("Usage:");
 		System.out.println("      ");
@@ -70,6 +119,12 @@ public class Configuration {
 	}
 	public  String getCLIENTID() {
 		return (String) options.valueOf(OPTION_CLIENTID);
+	}
+	public String getGPSDSERVER() {
+		return (String) options.valueOf(OPTION_GPSDSERVER);
+	}
+	public int getGPSDPORT() {
+		return (Integer) options.valueOf(OPTION_GPSDPORT);
 	}
 	public static String getDate() {
 		return new SimpleDateFormat("yyyyMMdd HH:mm:ss").format(Calendar.getInstance().getTime());
