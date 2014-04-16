@@ -21,18 +21,14 @@ public class PieTrackr  {
 		/**
 		 * Connect to MQTT
 		 */
-		//InitiateMQTT sender = new InitiateMQTT(config);
+		InitiateMQTT sender = new InitiateMQTT(config);
 		
 		/**
 		 * Send Message to MQTT
 		 **/
 		//sender.SendMsg("firsttstmsg");
-		/**
-		 * Disconnect MQTT
-		 */
-		//sender.disconnect();
-		
-		Runnable gps = new GpsHandler(config);
+
+		Runnable gps = new GpsHandler(config,sender);
 		Thread worker = new Thread(gps);
 		// We can set the name of the thread
 		worker.setName("GPSThread1");
@@ -42,6 +38,9 @@ public class PieTrackr  {
 		threads.add(worker);
 		Thread.sleep(6000);
 		worker.interrupt();
-		
+		/**
+		 * Disconnect MQTT
+		 */
+		sender.disconnect();
     }
 }
