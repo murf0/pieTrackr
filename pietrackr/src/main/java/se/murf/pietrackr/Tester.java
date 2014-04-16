@@ -54,7 +54,7 @@ public class Tester {
 	 */
 	public static void main(final String[] args) {
 		try {
-			String host = "10.0.1.19";
+			String host = "localhost";
 			int port = 2947;
 
 			switch (args.length) {
