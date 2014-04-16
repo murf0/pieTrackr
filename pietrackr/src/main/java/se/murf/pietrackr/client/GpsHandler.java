@@ -1,22 +1,15 @@
-package se.murf.pietrackr;
+package se.murf.pietrackr.client;
 
 
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.util.List;
-import java.util.logging.Level;
 
+import se.murf.pietrackr.Configuration;
+import se.murf.pietrackr.InitiateMQTT;
 import de.taimos.gpsd4java.api.ObjectListener;
 import de.taimos.gpsd4java.backend.GPSdEndpoint;
 import de.taimos.gpsd4java.backend.ResultParser;
-import de.taimos.gpsd4java.types.ATTObject;
-import de.taimos.gpsd4java.types.DeviceObject;
-import de.taimos.gpsd4java.types.DevicesObject;
-import de.taimos.gpsd4java.types.PollObject;
-import de.taimos.gpsd4java.types.SATObject;
-import de.taimos.gpsd4java.types.SKYObject;
 import de.taimos.gpsd4java.types.TPVObject;
-import de.taimos.gpsd4java.types.subframes.SUBFRAMEObject;
 
 
 

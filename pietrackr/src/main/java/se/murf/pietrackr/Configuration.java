@@ -34,6 +34,7 @@ public class Configuration {
 	private static final String OPTION_SERVER = "mqttserver";
 	private static final String OPTION_PORT = "mqttport";
 	private static final String OPTION_CLIENTID = "mqttclientid";
+	private static final String OPTION_KEYSTORE = "keystore";
 	private static final String OPTION_GPSDSERVER = "gpsdserver";
 	private static final String OPTION_GPSDPORT = "gpsdport";
 	private static final String WRITE_OPTION = "configfilewriter";
@@ -52,6 +53,7 @@ public class Configuration {
 				accepts(OPTION_SERVER, "Server to publish to").withRequiredArg().describedAs("mqttserver").ofType(String.class);
 				accepts(OPTION_PORT, "ServerPort.").withRequiredArg().describedAs("mqttport").ofType(String.class);
 				accepts(OPTION_CLIENTID, "MQTT Clientid").withRequiredArg().describedAs("mqttclientid").ofType(String.class);
+				accepts(OPTION_KEYSTORE, "MQTT Keystore").withRequiredArg().describedAs("keystore").ofType(String.class);
 				accepts(OPTION_GPSDSERVER, "GPSd ServerIP.").withRequiredArg().describedAs("gpsdserver").ofType(String.class);
 				accepts(OPTION_GPSDPORT, "GPSd Port.").withRequiredArg().describedAs("gpsdport").ofType(int.class);
 
@@ -74,6 +76,8 @@ public class Configuration {
 		if(options.hasArgument(WRITE_OPTION)) {
 			writeConfigFile(args,"pietrackrd.conf");
 		}
+		
+		
 	}
 	private String[] readConfigFile(String file) throws ClassNotFoundException {
 		String yourString="N/A";
@@ -122,6 +126,9 @@ public class Configuration {
 	}
 	public String getGPSDSERVER() {
 		return (String) options.valueOf(OPTION_GPSDSERVER);
+	}
+	public String getKEYSTORE() {
+		return (String) options.valueOf(OPTION_KEYSTORE);
 	}
 	public int getGPSDPORT() {
 		return (Integer) options.valueOf(OPTION_GPSDPORT);

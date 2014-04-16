@@ -1,6 +1,8 @@
-package se.murf.pietrackr;
+package se.murf.pietrackr.client;
 
 import java.util.*;
+import se.murf.pietrackr.Configuration;
+import se.murf.pietrackr.InitiateMQTT;
 
 /**
  * @author Murf Mellgren 20140414

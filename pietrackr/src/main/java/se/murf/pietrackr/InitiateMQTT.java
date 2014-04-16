@@ -1,6 +1,8 @@
 package se.murf.pietrackr;
 
 
+import java.util.Properties;
+
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
@@ -21,9 +23,19 @@ public class InitiateMQTT {
 		this.Port=config.getPORT();
 		this.ClientID=config.getCLIENTID();
 
+		
+        System.setProperty("javax.net.ssl.trustStore", config.getKEYSTORE());
+        System.setProperty("javax.net.ssl.trustStorePassword", "changeit");
+        System.setProperty("javax.net.ssl.keyStore", config.getKEYSTORE());
+        System.setProperty("javax.net.ssl.keyStorePassword", "changeit");
+        
 		try {
-			client = new MqttClient("tcp://" + Server + ":" + Port , ClientID);
+			client = new MqttClient("ssl://" + Server + ":" + Port , ClientID);
 			options = new MqttConnectOptions();
+			options.setCleanSession(true);
+			Properties props = new Properties();
+			props.setProperty("com.ibm.ssl.protocol", "TLSv1.2");
+			options.setSSLProperties(props);
 			/* options.setW */
 			System.out.println(Configuration.getDate() + " Connect MQTT");
 			client.connect(options);
@@ -49,6 +61,7 @@ public class InitiateMQTT {
 		} catch (MqttException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.exit(99);
 		}
 	}
 	
