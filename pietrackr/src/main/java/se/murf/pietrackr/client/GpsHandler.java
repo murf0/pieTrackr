@@ -44,18 +44,13 @@ public class GpsHandler implements Runnable {
 				@Override
 				public void handleTPV(final TPVObject tpv) {
 					//System.setOut(originalStream);
-					LOGGER.info("START");
-					LOGGER.info("Altitude: " +Double.toString(tpv.getAltitude()));
-					LOGGER.info("longitude: " +Double.toString(tpv.getLongitude()));
-					LOGGER.info("latitude: " +Double.toString(tpv.getLatitude()));
-					LOGGER.info("speed: " +Double.toString(tpv.getSpeed()));
-					LOGGER.info("END");
 					String msg = Double.toString(tpv.getAltitude()) + 
-							"|" +Double.toString(tpv.getLongitude()) +
 							"|" +Double.toString(tpv.getLatitude()) +
+							"," +Double.toString(tpv.getLongitude()) +
 							"|" +Double.toString(tpv.getSpeed());
 					sender.SendMsg(msg);
-					System.setOut(dummyStream);
+					LOGGER.info("Sent: " + msg);
+					//System.setOut(dummyStream);
 				}
 			};
 			ep.addListener(p);

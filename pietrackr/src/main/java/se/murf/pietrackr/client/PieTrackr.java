@@ -15,8 +15,21 @@ public class PieTrackr  {
 	private static Configuration config;
 	private static List<Thread> threads = new ArrayList<Thread>();
 	private final static Logger LOGGER = Logger.getLogger(PieTrackr.class.getName());
-
+	static volatile boolean keepRunning = true;
+	
 	public static void main( String[] args ) throws Exception {
+		final Thread mainThread = Thread.currentThread();
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+		    public void run() {
+		        keepRunning = false;
+		        try {
+					mainThread.join();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		    }
+		});
 		/**
 		 * Parse Configuration
 		 */
@@ -40,7 +53,10 @@ public class PieTrackr  {
 		worker.start();
 		// Remember the thread for later usage
 		threads.add(worker);
-		Thread.sleep(6000);
+		while(keepRunning) {
+			Thread.sleep(10000);
+		}
+		LOGGER.info("Disrupt GPS thread");
 		worker.interrupt();
 		/**
 		 * Disconnect MQTT

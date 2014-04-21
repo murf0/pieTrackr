@@ -10,8 +10,21 @@ import se.murf.pietrackr.client.PieTrackr;
 public class Server {
 	private static Configuration config;
 	private final static Logger LOGGER = Logger.getLogger(PieTrackr.class.getName());
-
+	static volatile boolean keepRunning = true;
+	
 	public static void main( String[] args ) throws Exception {
+		final Thread mainThread = Thread.currentThread();
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+		    public void run() {
+		        keepRunning = false;
+		        try {
+					mainThread.join();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		    }
+		});
 		/**
 		 * Parse Configuration
 		 */
@@ -23,9 +36,9 @@ public class Server {
 		InitiateMQTT receiver = new InitiateMQTT(config);
 		LOGGER.info("do subscritopn");
 		receiver.setSubscribe();
-		
-		
-		Thread.sleep(60000);
+		while(keepRunning) {
+			Thread.sleep(10000);
+		}
 		/**
 		 * Disconnect MQTT
 		 */
