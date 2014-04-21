@@ -3,6 +3,9 @@ package se.murf.pietrackr.client;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.logging.Logger;
+
+
 
 import se.murf.pietrackr.Configuration;
 import se.murf.pietrackr.InitiateMQTT;
@@ -17,7 +20,8 @@ public class GpsHandler implements Runnable {
 	int port=0;
 	String server="NONE";
 	InitiateMQTT sender;
-	
+	private final static Logger LOGGER = Logger.getLogger(GpsHandler.class.getName());
+
 	
 	PrintStream originalStream = System.out;
 	PrintStream dummyStream    = new PrintStream(new OutputStream(){
@@ -39,17 +43,17 @@ public class GpsHandler implements Runnable {
 			ObjectListener p = new ObjectListener() {
 				@Override
 				public void handleTPV(final TPVObject tpv) {
-					System.setOut(originalStream);
-					System.out.println("START");
-					System.out.println("Altitude: " +Double.toString(tpv.getAltitude()));
-					System.out.println("longitude: " +Double.toString(tpv.getLongitude()));
-					System.out.println("latitude: " +Double.toString(tpv.getLatitude()));
-					System.out.println("speed: " +Double.toString(tpv.getSpeed()));
-					System.out.println("END");
-					String msg = "Altitude: " +Double.toString(tpv.getAltitude()) + 
-							"longitude: " +Double.toString(tpv.getLongitude()) +
-							"latitude: " +Double.toString(tpv.getLatitude()) +
-							"speed: " +Double.toString(tpv.getSpeed());
+					//System.setOut(originalStream);
+					LOGGER.info("START");
+					LOGGER.info("Altitude: " +Double.toString(tpv.getAltitude()));
+					LOGGER.info("longitude: " +Double.toString(tpv.getLongitude()));
+					LOGGER.info("latitude: " +Double.toString(tpv.getLatitude()));
+					LOGGER.info("speed: " +Double.toString(tpv.getSpeed()));
+					LOGGER.info("END");
+					String msg = Double.toString(tpv.getAltitude()) + 
+							"|" +Double.toString(tpv.getLongitude()) +
+							"|" +Double.toString(tpv.getLatitude()) +
+							"|" +Double.toString(tpv.getSpeed());
 					sender.SendMsg(msg);
 					System.setOut(dummyStream);
 				}
@@ -74,7 +78,7 @@ public class GpsHandler implements Runnable {
 			        break;
 				}
 			}
-			System.out.println("Shutting down thread");
+			LOGGER.info("Shutting down thread GPShandler");
 		} catch (final Exception e) {
 			e.printStackTrace();
 		}

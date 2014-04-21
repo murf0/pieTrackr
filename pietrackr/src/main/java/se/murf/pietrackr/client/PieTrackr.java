@@ -1,6 +1,8 @@
 package se.murf.pietrackr.client;
 
 import java.util.*;
+import java.util.logging.Logger;
+
 import se.murf.pietrackr.Configuration;
 import se.murf.pietrackr.InitiateMQTT;
 
@@ -12,17 +14,17 @@ import se.murf.pietrackr.InitiateMQTT;
 public class PieTrackr  {
 	private static Configuration config;
 	private static List<Thread> threads = new ArrayList<Thread>();
-	
+	private final static Logger LOGGER = Logger.getLogger(PieTrackr.class.getName());
+
 	public static void main( String[] args ) throws Exception {
 		/**
 		 * Parse Configuration
 		 */
-		System.out.println(Arrays.toString(args));
+		LOGGER.info("Parsing Input");
+		LOGGER.info(Arrays.toString(args));
 		config = new Configuration(args);
 		
-		/**
-		 * Connect to MQTT
-		 */
+		LOGGER.info("Connect to MQTT");
 		InitiateMQTT sender = new InitiateMQTT(config);
 		
 		/**
@@ -43,6 +45,7 @@ public class PieTrackr  {
 		/**
 		 * Disconnect MQTT
 		 */
+		LOGGER.info("Disconnect MQTT");
 		sender.disconnect();
     }
 }

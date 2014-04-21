@@ -2,10 +2,13 @@ package se.murf.pietrackr;
 
 
 import java.util.Properties;
+import java.util.logging.Logger;
 
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+
+import se.murf.pietrackr.client.GpsHandler;
 
 public class InitiateMQTT {
 	private MqttClient client;
@@ -16,6 +19,9 @@ public class InitiateMQTT {
 	private String ClientID;
 	private int QOS=2;
 	private boolean RETAIN=false;
+	private final static Logger LOGGER = Logger.getLogger(GpsHandler.class.getName());
+
+	
 	
 	public InitiateMQTT(Configuration config) throws Exception  {
 		this.topic=config.getPUSH();
@@ -37,7 +43,7 @@ public class InitiateMQTT {
 			props.setProperty("com.ibm.ssl.protocol", "TLSv1.2");
 			options.setSSLProperties(props);
 			/* options.setW */
-			System.out.println(Configuration.getDate() + " Connect MQTT");
+			LOGGER.info(" Connect MQTT");
 			client.connect(options);
 		} catch (MqttException e) { 
 			e.printStackTrace();
@@ -46,7 +52,7 @@ public class InitiateMQTT {
 	
 	public void disconnect( ) {
 		try {
-			System.out.println(Configuration.getDate() + " Disconnect MQTT");
+			LOGGER.info(" Disconnect MQTT");
 			client.disconnect();
 		} catch (MqttException e) { 
 			e.printStackTrace();
