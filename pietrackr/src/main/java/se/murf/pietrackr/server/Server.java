@@ -21,6 +21,7 @@ public class Server {
 		
 		LOGGER.info("Connect to MQTT");
 		InitiateMQTT receiver = new InitiateMQTT(config);
+		LOGGER.info("do subscritopn");
 		receiver.setSubscribe();
 		
 		
