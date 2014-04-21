@@ -4,13 +4,16 @@ package se.murf.pietrackr;
 import java.util.Properties;
 import java.util.logging.Logger;
 
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import se.murf.pietrackr.client.GpsHandler;
 
-public class InitiateMQTT {
+public class InitiateMQTT implements MqttCallback {
 	private MqttClient client;
 	private String topic;
 	private MqttConnectOptions options;
@@ -45,6 +48,7 @@ public class InitiateMQTT {
 			/* options.setW */
 			LOGGER.info(" Connect MQTT");
 			client.connect(options);
+			client.setCallback(this);
 		} catch (MqttException e) { 
 			e.printStackTrace();
 		}
@@ -78,5 +82,24 @@ public class InitiateMQTT {
 	
 	public void setTopic(String intopic) {
 		this.topic = intopic;
+	}
+	
+	public void setSubscribe() throws MqttException {
+		client.subscribe(topic);
+	}
+	
+	public void connectionLost(Throwable arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void deliveryComplete(IMqttDeliveryToken arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void messageArrived(String ontopic, MqttMessage msg) throws Exception {
+		LOGGER.info(ontopic + " " + new String (msg.getPayload()));
+		
 	}
 }
