@@ -37,6 +37,7 @@ public class Server {
 		LOGGER.info("Connect to MQTT");
 		InitiateMQTT receiver = new InitiateMQTT(config);
 		LOGGER.info("do subscritopn");
+		receiver.setSql(sql);
 		receiver.setSubscribe();
 		while(keepRunning) {
 			Thread.sleep(10000);

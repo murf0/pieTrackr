@@ -25,7 +25,7 @@ public class InitiateMQTT implements MqttCallback {
 	private int QOS=2;
 	private boolean RETAIN=false;
 	private final static Logger LOGGER = Logger.getLogger(GpsHandler.class.getName());
-
+	private SqlConnector sql;
 	
 	
 	public InitiateMQTT(Configuration config) throws Exception  {
@@ -113,6 +113,7 @@ public class InitiateMQTT implements MqttCallback {
 		String alt=data2[3];
 		long epoch=Long.parseLong(data2[4]);
 		Date time=new Date(epoch * 1000);
+		sql.addRow(lat, lon, speed, alt, epoch);
 		
 		System.out.println("LAT" + lat);
 		System.out.println("Lon" + lon);
@@ -121,5 +122,9 @@ public class InitiateMQTT implements MqttCallback {
 		System.out.println("LAT" + time.toString());
 
 		
+	}
+
+	public void setSql(SqlConnector insql) {
+		sql = insql;
 	}
 }
