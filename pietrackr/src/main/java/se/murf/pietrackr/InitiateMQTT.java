@@ -1,6 +1,7 @@
 package se.murf.pietrackr;
 
 
+import java.util.Date;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -12,6 +13,7 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import se.murf.pietrackr.client.GpsHandler;
+import se.murf.pietrackr.server.SqlConnector;
 
 public class InitiateMQTT implements MqttCallback {
 	private MqttClient client;
@@ -32,16 +34,18 @@ public class InitiateMQTT implements MqttCallback {
 		this.Port=config.getPORT();
 		this.ClientID=config.getCLIENTID();
 
-		
-        System.setProperty("javax.net.ssl.trustStore", config.getKEYSTORE());
-        System.setProperty("javax.net.ssl.trustStorePassword", "changeit");
-        System.setProperty("javax.net.ssl.keyStore", config.getKEYSTORE());
-        System.setProperty("javax.net.ssl.keyStorePassword", "changeit");
-        
+		if(config.getSSL()) {
+	        System.setProperty("javax.net.ssl.trustStore", config.getKEYSTORE());
+	        System.setProperty("javax.net.ssl.trustStorePassword", "changeit");
+	        //System.setProperty("javax.net.ssl.keyStore", config.getKEYSTORE());
+	        //System.setProperty("javax.net.ssl.keyStorePassword", "changeit");
+		}
 		try {
 			client = new MqttClient("ssl://" + Server + ":" + Port , ClientID);
 			options = new MqttConnectOptions();
 			options.setCleanSession(true);
+			options.setPassword(config.getPassword());
+			options.setUserName(config.getUserName());
 			Properties props = new Properties();
 			props.setProperty("com.ibm.ssl.protocol", "TLSv1.2");
 			options.setSSLProperties(props);
@@ -98,8 +102,24 @@ public class InitiateMQTT implements MqttCallback {
 		
 	}
 
-	public void messageArrived(String ontopic, MqttMessage msg) throws Exception {
+	public void messageArrived(String ontopic, MqttMessage msg, SqlConnector sql) throws Exception {
 		LOGGER.info(ontopic + " " + new String (msg.getPayload()));
+		String data= new String (msg.getPayload());
+		String[] data2 = data.split(",");
+		//System.out.println(Arrays.toString(data2));
+		String lat=data2[0];
+		String lon=data2[1];
+		String speed=data2[2];
+		String alt=data2[3];
+		long epoch=Long.parseLong(data2[4]);
+		Date time=new Date(epoch * 1000);
+		
+		System.out.println("LAT" + lat);
+		System.out.println("Lon" + lon);
+		System.out.println("LAT" + speed);
+		System.out.println("LAT" + alt);
+		System.out.println("LAT" + time.toString());
+
 		
 	}
 }

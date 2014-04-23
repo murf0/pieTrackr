@@ -38,6 +38,8 @@ public class Configuration {
 	private static final String OPTION_GPSDSERVER = "gpsdserver";
 	private static final String OPTION_GPSDPORT = "gpsdport";
 	private static final String WRITE_OPTION = "configfilewriter";
+	private static final String OPTION_USER = "username";
+	private static final String OPTION_USERPW = "password";
 	
 	private static OptionSet options = null;
 	public Configuration(String[] args) throws Exception {
@@ -53,10 +55,11 @@ public class Configuration {
 				accepts(OPTION_SERVER, "Server to publish to").withRequiredArg().describedAs("mqttserver").ofType(String.class);
 				accepts(OPTION_PORT, "ServerPort.").withRequiredArg().describedAs("mqttport").ofType(String.class);
 				accepts(OPTION_CLIENTID, "MQTT Clientid").withRequiredArg().describedAs("mqttclientid").ofType(String.class);
-				accepts(OPTION_KEYSTORE, "MQTT Keystore").withRequiredArg().describedAs("keystore").ofType(String.class);
-				accepts(OPTION_GPSDSERVER, "GPSd ServerIP.").withRequiredArg().describedAs("gpsdserver").ofType(String.class);
-				accepts(OPTION_GPSDPORT, "GPSd Port.").withRequiredArg().describedAs("gpsdport").ofType(int.class);
-
+				accepts(OPTION_KEYSTORE, "MQTT Keystore").withOptionalArg().describedAs("keystore").ofType(String.class);
+				accepts(OPTION_GPSDSERVER, "GPSd ServerIP.").withOptionalArg().describedAs("gpsdserver").ofType(String.class);
+				accepts(OPTION_GPSDPORT, "GPSd Port.").withOptionalArg().describedAs("gpsdport").ofType(int.class);
+				accepts(OPTION_USER, "MQTT UserID").withRequiredArg().describedAs("username").ofType(String.class);
+				accepts(OPTION_USERPW, "MQTT User Password").withRequiredArg().describedAs("password").ofType(String.class);
 			}
 		};
 		/*
@@ -135,5 +138,15 @@ public class Configuration {
 	}
 	public static String getDate() {
 		return new SimpleDateFormat("yyyyMMdd HH:mm:ss").format(Calendar.getInstance().getTime());
+	}
+	public boolean getSSL() {
+		return options.hasArgument(OPTION_KEYSTORE);
+	}
+	public String getUserName() {
+		return (String) options.valueOf(OPTION_USER);
+	}
+	public char[] getPassword() {
+		String str = (String) options.valueOf(OPTION_USERPW);
+		return str.toCharArray();
 	}
 }

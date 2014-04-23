@@ -31,6 +31,8 @@ public class Server {
 		LOGGER.info("Parsing Input");
 		LOGGER.info(Arrays.toString(args));
 		config = new Configuration(args);
+		LOGGER.info("Connect to MySQL");
+		SqlConnector sql = new SqlConnector();
 		
 		LOGGER.info("Connect to MQTT");
 		InitiateMQTT receiver = new InitiateMQTT(config);

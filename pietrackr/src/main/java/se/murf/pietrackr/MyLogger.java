@@ -1,7 +1,6 @@
 package se.murf.pietrackr;
 
 import java.io.IOException;
-import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,16 +17,10 @@ public class MyLogger {
 
     logger.setLevel(Level.INFO);
     fileTxt = new FileHandler("out.log");
-
     // create txt Formatter
     formatterTxt = new SimpleFormatter();
     fileTxt.setFormatter(formatterTxt);
     logger.addHandler(fileTxt);
-    
-    ConsoleHandler handler = new ConsoleHandler();
-    handler.setFormatter(new SimpleFormatter());
-    logger.addHandler(handler);
-
   }
 }
  

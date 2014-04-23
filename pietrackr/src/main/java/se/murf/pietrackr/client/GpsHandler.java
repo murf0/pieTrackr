@@ -44,10 +44,12 @@ public class GpsHandler implements Runnable {
 				@Override
 				public void handleTPV(final TPVObject tpv) {
 					//System.setOut(originalStream);
-					String msg = Double.toString(tpv.getAltitude()) + 
-							"|" +Double.toString(tpv.getLatitude()) +
+					String msg = Double.toString(tpv.getLatitude()) +
 							"," +Double.toString(tpv.getLongitude()) +
-							"|" +Double.toString(tpv.getSpeed());
+							"," +Double.toString(tpv.getSpeed()) +
+							"," +Double.toString(tpv.getAltitude()) +
+							"," +Long.toString((long) tpv.getTimestamp()) +
+							"";
 					sender.SendMsg(msg);
 					LOGGER.info("Sent: " + msg);
 					//System.setOut(dummyStream);
