@@ -9,7 +9,7 @@ import se.murf.pietrackr.MyLogger;
 
 public class Server {
 	private static Configuration config;
-	private final static Logger LOGGER = Logger.getLogger(Server.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 	static volatile boolean keepRunning = true;
 	
 	public static void main( String[] args ) throws Exception {

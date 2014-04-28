@@ -6,7 +6,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.json.JSONObject;
+
 
 
 
@@ -48,7 +50,7 @@ public class SqlConnector {
 		try {
 			if (obj.getString("_type").equals("location")) {
 				try {
-					LOGGER.info("Add row to SQL");
+					LOGGER.finer("Add row to SQL");
 					pst.setLong(1, obj.getInt("tst")); //timestamp
 					pst.setString(2, obj.getString("device")); //Device
 					pst.setString(3, obj.getString("user")); //user

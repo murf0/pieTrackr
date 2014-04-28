@@ -23,7 +23,7 @@ public class InitiateMQTT implements MqttCallback {
 	private String ClientID;
 	private int QOS=2;
 	private boolean RETAIN=false;
-	private final static Logger LOGGER = Logger.getLogger(InitiateMQTT.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 	private SqlConnector sql=null;
 	
 	
@@ -32,7 +32,6 @@ public class InitiateMQTT implements MqttCallback {
 		this.Server=config.getSERVER();
 		this.Port=config.getPORT();
 		this.ClientID=config.getCLIENTID();
-
 		if(config.getSSL()) {
 	        System.setProperty("javax.net.ssl.trustStore", config.getKEYSTORE());
 	        System.setProperty("javax.net.ssl.trustStorePassword", "changeit");
@@ -40,7 +39,11 @@ public class InitiateMQTT implements MqttCallback {
 	        //System.setProperty("javax.net.ssl.keyStorePassword", "changeit");
 		}
 		try {
-			client = new MqttClient("ssl://" + Server + ":" + Port , ClientID);
+			if(config.getSSL()) {
+				client = new MqttClient("ssl://" + Server + ":" + Port , ClientID);
+			} else {
+				client = new MqttClient("tcp://" + Server + ":" + Port , ClientID);
+			}
 			options = new MqttConnectOptions();
 			options.setCleanSession(true);
 			options.setPassword(config.getPassword());
@@ -107,7 +110,7 @@ public class InitiateMQTT implements MqttCallback {
 		  "batt": "51"
 		}
 		*/
-		LOGGER.info(ontopic + " " + new String (msg.getPayload()));
+		LOGGER.finer(ontopic + " " + new String (msg.getPayload()));
 		String data= new String (msg.getPayload());
 		String user= ontopic.split("/")[1];
 		
@@ -141,7 +144,7 @@ public class InitiateMQTT implements MqttCallback {
 			obj = null;
 		}
 		if( sql != null && obj != null) {
-			LOGGER.info("logging to SQL" + obj.toString());
+			LOGGER.finer("logging to SQL" + obj.toString());
 			sql.addRow(obj);
 		}
 		//LOGGER.info("Topic " + ontopic +" Lat " + lat + " Lon " + lon + " speed " + speed + " alt " + alt + " date " + time.toString());
