@@ -5,8 +5,6 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.logging.Logger;
 
-
-
 import se.murf.pietrackr.Configuration;
 import se.murf.pietrackr.InitiateMQTT;
 import de.taimos.gpsd4java.api.ObjectListener;

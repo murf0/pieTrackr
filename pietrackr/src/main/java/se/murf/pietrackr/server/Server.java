@@ -5,14 +5,15 @@ import java.util.logging.Logger;
 
 import se.murf.pietrackr.Configuration;
 import se.murf.pietrackr.InitiateMQTT;
-import se.murf.pietrackr.client.PieTrackr;
+import se.murf.pietrackr.MyLogger;
 
 public class Server {
 	private static Configuration config;
-	private final static Logger LOGGER = Logger.getLogger(PieTrackr.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(Server.class.getName());
 	static volatile boolean keepRunning = true;
 	
 	public static void main( String[] args ) throws Exception {
+		MyLogger.setup();
 		final Thread mainThread = Thread.currentThread();
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 		    public void run() {
@@ -36,17 +37,18 @@ public class Server {
 		
 		LOGGER.info("Connect to MQTT");
 		InitiateMQTT receiver = new InitiateMQTT(config);
-		LOGGER.info("do subscritopn");
+		
 		receiver.setSql(sql);
 		receiver.setSubscribe();
 		while(keepRunning) {
-			Thread.sleep(10000);
+			Thread.sleep(1000);
 		}
 		/**
 		 * Disconnect MQTT
 		 */
 		LOGGER.info("Disconnect MQTT");
 		receiver.disconnect();
+		//sql.disconnect();
     }
 
 }

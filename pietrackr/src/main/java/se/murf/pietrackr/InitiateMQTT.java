@@ -1,7 +1,6 @@
 package se.murf.pietrackr;
 
 
-import java.util.Date;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -11,8 +10,8 @@ import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.json.JSONObject;
 
-import se.murf.pietrackr.client.GpsHandler;
 import se.murf.pietrackr.server.SqlConnector;
 
 public class InitiateMQTT implements MqttCallback {
@@ -24,8 +23,8 @@ public class InitiateMQTT implements MqttCallback {
 	private String ClientID;
 	private int QOS=2;
 	private boolean RETAIN=false;
-	private final static Logger LOGGER = Logger.getLogger(GpsHandler.class.getName());
-	private SqlConnector sql;
+	private final static Logger LOGGER = Logger.getLogger(InitiateMQTT.class.getName());
+	private SqlConnector sql=null;
 	
 	
 	public InitiateMQTT(Configuration config) throws Exception  {
@@ -89,42 +88,85 @@ public class InitiateMQTT implements MqttCallback {
 	}
 	
 	public void setSubscribe() throws MqttException {
+		LOGGER.info("Start subscription " + topic);
 		client.subscribe(topic);
 	}
-	
-	public void connectionLost(Throwable arg0) {
-		// TODO Auto-generated method stub
+	public void messageArrived(String ontopic, MqttMessage msg) throws Exception {
+		//TOPIC = tracker/devices/pi/mikael
+		// tracker/mikael/pi/DOL616
+		// tracker/mikael/owntracks/G2
+		// tracker/<username>/<devicetype>/<devicename>
 		
-	}
-
-	public void deliveryComplete(IMqttDeliveryToken arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void messageArrived(String ontopic, MqttMessage msg, SqlConnector sql) throws Exception {
+		/*
+		{
+		  "_type": "location",
+		  "lat": "58.0396857",
+		  "lon": "12.7939241",
+		  "tst": "1398365109",
+		  "acc": "25.46",
+		  "batt": "51"
+		}
+		*/
 		LOGGER.info(ontopic + " " + new String (msg.getPayload()));
 		String data= new String (msg.getPayload());
-		String[] data2 = data.split(",");
-		//System.out.println(Arrays.toString(data2));
-		String lat=data2[0];
-		String lon=data2[1];
-		String speed=data2[2];
-		String alt=data2[3];
-		long epoch=Long.parseLong(data2[4]);
-		Date time=new Date(epoch * 1000);
-		sql.addRow(lat, lon, speed, alt, epoch);
+		String user= ontopic.split("/")[1];
 		
-		System.out.println("LAT" + lat);
-		System.out.println("Lon" + lon);
-		System.out.println("LAT" + speed);
-		System.out.println("LAT" + alt);
-		System.out.println("LAT" + time.toString());
+		JSONObject obj;
+		//owntracks:  {"_type": "location", "lat": "58.0396857", "lon": "12.7939241", "tst": "1398365109", "acc": "25.46", "batt": "51"}
+		//
+		if(ontopic.contains("/pi/")) {
+			LOGGER.finest("Pi Parsing");
+			obj=new JSONObject();
+			obj.put("_type","location");
+			String[] data2 = data.split(",");
+			obj.put("lat",data2[0]);
+			obj.put("lon",data2[1]);
+			obj.put("speed",data2[2]);
+			obj.put("alt",data2[3]);
+			obj.put("tst",Long.parseLong(data2[4]));
+			obj.put("batt", new Integer(100));
+			obj.put("device","pi");
+			obj.put("user",user);
+			obj.put("topic",ontopic);
+		} else if(ontopic.contains("/owntracks/")) {
+			LOGGER.finest("Owntracks Parsing");
+			obj=new JSONObject(data);
+			obj.put("device","owntracks");
+			obj.put("speed","0"); //owntracks does not send
+			obj.put("alt","0"); //owntracks does not send
+			obj.put("user",user);
+			obj.put("topic",ontopic);
+		} else {
+			obj = null;
+		}
+		if( sql != null && obj != null) {
+			LOGGER.finest("logging to SQL" + obj.toString());
+			sql.addRow(obj);
+		}
+		if(obj != null) {
+			LOGGER.finest(obj.toString());
+		}
+		//LOGGER.info("Topic " + ontopic +" Lat " + lat + " Lon " + lon + " speed " + speed + " alt " + alt + " date " + time.toString());
 
 		
 	}
 
 	public void setSql(SqlConnector insql) {
 		sql = insql;
+	}
+
+	public void connectionLost(Throwable arg0) {
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+
+	public void deliveryComplete(IMqttDeliveryToken arg0) {
+		// TODO Auto-generated method stub
+		
 	}
 }
