@@ -46,9 +46,9 @@ public class SqlConnector {
 	 */
 	public void addRow(JSONObject obj) {
 		try {
-			if (obj.getString("_type") == "location") {
+			if (obj.getString("_type").equals("location")) {
 				try {
-					System.out.println("DOSQL");
+					LOGGER.info("Add row to SQL");
 					pst.setLong(1, obj.getInt("tst")); //timestamp
 					pst.setString(2, obj.getString("device")); //Device
 					pst.setString(3, obj.getString("user")); //user

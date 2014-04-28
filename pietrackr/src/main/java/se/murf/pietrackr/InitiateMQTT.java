@@ -137,14 +137,12 @@ public class InitiateMQTT implements MqttCallback {
 			obj.put("user",user);
 			obj.put("topic",ontopic);
 		} else {
+			LOGGER.info("Unknown Topic " + ontopic);
 			obj = null;
 		}
 		if( sql != null && obj != null) {
-			LOGGER.finest("logging to SQL" + obj.toString());
+			LOGGER.info("logging to SQL" + obj.toString());
 			sql.addRow(obj);
-		}
-		if(obj != null) {
-			LOGGER.finest(obj.toString());
 		}
 		//LOGGER.info("Topic " + ontopic +" Lat " + lat + " Lon " + lon + " speed " + speed + " alt " + alt + " date " + time.toString());
 

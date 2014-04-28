@@ -48,7 +48,7 @@ public class Server {
 		 */
 		LOGGER.info("Disconnect MQTT");
 		receiver.disconnect();
-		//sql.disconnect();
+		sql.disconnect();
     }
 
 }
