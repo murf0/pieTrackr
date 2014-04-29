@@ -34,7 +34,7 @@ public class Client  {
 		 * Parse Configuration
 		 */
 		LOGGER.info("Parsing Input");
-		config = new Configuration("server.config");
+		config = new Configuration("client.config");
 		
 		LOGGER.info("Connect to MQTT");
 		InitiateMQTT sender = new InitiateMQTT(config);
