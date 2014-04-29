@@ -20,7 +20,8 @@ public class Client  {
 	public static void main( String[] args ) throws Exception {
 		final Thread mainThread = Thread.currentThread();
 		Runtime.getRuntime().addShutdownHook(new Thread() {
-		    public void run() {
+		    @Override
+			public void run() {
 		        keepRunning = false;
 		        try {
 					mainThread.join();

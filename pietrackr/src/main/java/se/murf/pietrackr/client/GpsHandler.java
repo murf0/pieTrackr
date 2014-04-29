@@ -23,7 +23,8 @@ public class GpsHandler implements Runnable {
 	
 	PrintStream originalStream = System.out;
 	PrintStream dummyStream    = new PrintStream(new OutputStream(){
-	    public void write(int b) {
+	    @Override
+		public void write(int b) {
 	        //NO-OP
 	    }
 	});

@@ -16,7 +16,8 @@ public class Server {
 		MyLogger.setup();
 		final Thread mainThread = Thread.currentThread();
 		Runtime.getRuntime().addShutdownHook(new Thread() {
-		    public void run() {
+		    @Override
+			public void run() {
 		        keepRunning = false;
 		        try {
 					mainThread.join();
