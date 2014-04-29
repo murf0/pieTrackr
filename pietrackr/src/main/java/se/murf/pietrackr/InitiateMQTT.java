@@ -28,30 +28,30 @@ public class InitiateMQTT implements MqttCallback {
 	
 	
 	public InitiateMQTT(Configuration config) throws Exception  {
-		this.topic=config.getPUSH();
-		this.Server=config.getSERVER();
-		this.Port=config.getPORT();
-		this.ClientID=config.getCLIENTID();
-		if(config.getSSL()) {
-	        System.setProperty("javax.net.ssl.trustStore", config.getKEYSTORE());
-	        System.setProperty("javax.net.ssl.trustStorePassword", "changeit");
-	        //System.setProperty("javax.net.ssl.keyStore", config.getKEYSTORE());
-	        //System.setProperty("javax.net.ssl.keyStorePassword", "changeit");
-		}
+		this.topic=config.getProperty("TEST");
+		this.Server=config.getProperty("mqttServer");
+		this.Port=config.getProperty("mqttPort");
+		this.ClientID=config.getProperty("mqttClient");
+		options = new MqttConnectOptions();
 		try {
-			if(config.getSSL()) {
-				client = new MqttClient("ssl://" + Server + ":" + Port , ClientID);
+			Properties props = new Properties();
+			if( ! config.getProperty("mqttKeystore").isEmpty()) {
+		        System.setProperty("javax.net.ssl.trustStore", config.getProperty("mqttKeystore"));
+		        System.setProperty("javax.net.ssl.trustStorePassword", config.getProperty("mqttKeystorePW"));
+		        //System.setProperty("javax.net.ssl.keyStore", config.getKEYSTORE());
+		        //System.setProperty("javax.net.ssl.keyStorePassword", "changeit");
+		        client = new MqttClient("ssl://" + Server + ":" + Port , ClientID);
+		        
+		        props.setProperty("com.ibm.ssl.protocol", "TLSv1.2");
+		        options.setSSLProperties(props);
 			} else {
 				client = new MqttClient("tcp://" + Server + ":" + Port , ClientID);
 			}
-			options = new MqttConnectOptions();
+			
 			options.setCleanSession(true);
-			options.setPassword(config.getPassword());
-			options.setUserName(config.getUserName());
-			Properties props = new Properties();
-			props.setProperty("com.ibm.ssl.protocol", "TLSv1.2");
-			options.setSSLProperties(props);
-			/* options.setW */
+			options.setPassword(config.getProperty("mqttPassword").toCharArray());
+			options.setUserName(config.getProperty("mqttUsername"));
+
 			LOGGER.info(" Connect MQTT");
 			client.connect(options);
 			client.setCallback(this);

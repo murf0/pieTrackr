@@ -9,6 +9,8 @@ import java.util.logging.Logger;
 
 import org.json.JSONObject;
 
+import se.murf.pietrackr.Configuration;
+
 
 
 
@@ -18,11 +20,14 @@ public class SqlConnector {
     private PreparedStatement pst = null;
     Logger LOGGER = Logger.getLogger(SqlConnector.class.getName());
     
-    private String url = "jdbc:mysql://localhost:3306/tracking";
-    private String user = "server";
-    private String password = "d0Ty4dltRbyM";
+    private String url;
+    private String user;
+    private String password;
 
-	public  SqlConnector() {
+	public  SqlConnector(Configuration config) {
+		url = config.getProperty("sqlUrl");
+		user = config.getProperty("sqlUser");
+		password = config.getProperty("sqlPassword");
 		try {
             con = DriverManager.getConnection(url, user, password);
            // pst = con.prepareStatement("INSERT INTO raw(timestamp,device,user,topic,latitude,longitude,speed,altitude,comment) VALUES(?,?,?,?,?,?,?,?,?)");

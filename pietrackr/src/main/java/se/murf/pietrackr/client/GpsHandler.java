@@ -30,8 +30,8 @@ public class GpsHandler implements Runnable {
 	
 	
 	public GpsHandler(Configuration config,InitiateMQTT insender) {
-		port = config.getGPSDPORT();
-		server = config.getGPSDSERVER();
+		port = Integer.parseInt(config.getProperty("gpsdPort"));
+		server = config.getProperty("gpsdServer");
 		sender = insender;
 	}
 	
