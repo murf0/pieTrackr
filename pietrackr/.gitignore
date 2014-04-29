@@ -1,1 +1,4 @@
 /target
+*.config
+out.log*
+.DS_store
