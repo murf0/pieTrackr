@@ -17,6 +17,7 @@ import se.murf.pietrackr.server.SqlConnector;
 public class InitiateMQTT implements MqttCallback {
 	private MqttClient client;
 	private String topic;
+	private String publishtopic;
 	private MqttConnectOptions options;
 	private String Server;
 	private String Port;
@@ -28,10 +29,11 @@ public class InitiateMQTT implements MqttCallback {
 	
 	
 	public InitiateMQTT(Configuration config) throws Exception  {
-		this.topic=config.getProperty("TEST");
+		this.topic=config.getProperty("mqttTopic");
+		this.topic=config.getProperty("mqttTopic");
 		this.Server=config.getProperty("mqttServer");
 		this.Port=config.getProperty("mqttPort");
-		this.ClientID=config.getProperty("mqttClient");
+		this.ClientID=config.getProperty("mqttClientid");
 		options = new MqttConnectOptions();
 		try {
 			Properties props = new Properties();
@@ -48,14 +50,21 @@ public class InitiateMQTT implements MqttCallback {
 				client = new MqttClient("tcp://" + Server + ":" + Port , ClientID);
 			}
 			
-			options.setCleanSession(true);
+			options.setCleanSession(false);
 			options.setPassword(config.getProperty("mqttPassword").toCharArray());
 			options.setUserName(config.getProperty("mqttUsername"));
-
-			LOGGER.info(" Connect MQTT");
+			connect();
+			
+		} catch (MqttException e) { 
+			e.printStackTrace();
+		}
+	}
+	public void connect(){
+		LOGGER.info(" Connect MQTT");
+		try {
 			client.connect(options);
 			client.setCallback(this);
-		} catch (MqttException e) { 
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -73,7 +82,7 @@ public class InitiateMQTT implements MqttCallback {
 	public void SendMsg(String msg) {
 
 	    try {
-			this.client.publish(topic, msg.getBytes(),this.QOS,this.RETAIN);
+			this.client.publish(publishtopic, msg.getBytes(),this.QOS,this.RETAIN);
 		} catch (MqttException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -82,14 +91,16 @@ public class InitiateMQTT implements MqttCallback {
 	}
 	
 	public void SendMsg(String msg, String intopic) {
-		this.topic=intopic;
+		this.publishtopic=intopic;
 		this.SendMsg(msg);
 	}
 	
 	public void setTopic(String intopic) {
 		this.topic = intopic;
 	}
-	
+	public void setPublishTopic(String intopic) {
+		this.publishtopic = intopic;
+	}	
 	public void setSubscribe() throws MqttException {
 		LOGGER.info("Start subscription " + topic);
 		client.subscribe(topic);
@@ -147,6 +158,10 @@ public class InitiateMQTT implements MqttCallback {
 			LOGGER.finer("logging to SQL" + obj.toString());
 			sql.addRow(obj);
 		}
+		if( obj != null) {
+			LOGGER.finer("logging to SQL" + obj.toString());
+			SendMsg(obj.toString());
+		}
 		//LOGGER.info("Topic " + ontopic +" Lat " + lat + " Lon " + lon + " speed " + speed + " alt " + alt + " date " + time.toString());
 
 		
@@ -157,12 +172,6 @@ public class InitiateMQTT implements MqttCallback {
 	}
 
 	public void connectionLost(Throwable arg0) {
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		
 	}
 
