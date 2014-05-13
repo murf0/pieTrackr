@@ -18,7 +18,7 @@ public class SqlConnector {
 	private Connection con = null;
     private ResultSet rs = null;
     private PreparedStatement pst = null;
-    Logger LOGGER = Logger.getLogger(SqlConnector.class.getName());
+    Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
     
     private String url;
     private String user;
@@ -33,7 +33,6 @@ public class SqlConnector {
            // pst = con.prepareStatement("INSERT INTO raw(timestamp,device,user,topic,latitude,longitude,speed,altitude,comment) VALUES(?,?,?,?,?,?,?,?,?)");
             pst = con.prepareStatement("INSERT INTO raw(timestamp,device,user,topic,latitude,longitude,speed,altitude) VALUES(?,?,?,?,?,?,?,?)");
         } catch (SQLException ex) {
-            
             LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
         }
 	}

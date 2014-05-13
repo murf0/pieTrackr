@@ -5,8 +5,9 @@ import java.util.Properties;
 import java.util.logging.Logger;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.IMqttToken;
+import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
-import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
@@ -15,18 +16,19 @@ import org.json.JSONObject;
 import se.murf.pietrackr.server.SqlConnector;
 
 public class InitiateMQTT implements MqttCallback {
-	private MqttClient client;
+	private MqttAsyncClient client;
 	private String topic;
 	private String publishtopic;
 	private MqttConnectOptions options;
 	private String Server;
 	private String Port;
 	private String ClientID;
+	private String Republish;
 	private int QOS=2;
 	private boolean RETAIN=false;
 	private final static Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 	private SqlConnector sql=null;
-	
+	private IMqttToken conToken=null;
 	
 	public InitiateMQTT(Configuration config) throws Exception  {
 		this.topic=config.getProperty("mqttTopic");
@@ -34,6 +36,7 @@ public class InitiateMQTT implements MqttCallback {
 		this.Server=config.getProperty("mqttServer");
 		this.Port=config.getProperty("mqttPort");
 		this.ClientID=config.getProperty("mqttClientid");
+		this.Republish=config.getProperty("mqttRepublish");
 		options = new MqttConnectOptions();
 		try {
 			Properties props = new Properties();
@@ -42,17 +45,21 @@ public class InitiateMQTT implements MqttCallback {
 		        System.setProperty("javax.net.ssl.trustStorePassword", config.getProperty("mqttKeystorePW"));
 		        //System.setProperty("javax.net.ssl.keyStore", config.getKEYSTORE());
 		        //System.setProperty("javax.net.ssl.keyStorePassword", "changeit");
-		        client = new MqttClient("ssl://" + Server + ":" + Port , ClientID);
+		        client = new MqttAsyncClient("ssl://" + Server + ":" + Port , ClientID);
 		        
 		        props.setProperty("com.ibm.ssl.protocol", "TLSv1.2");
 		        options.setSSLProperties(props);
 			} else {
-				client = new MqttClient("tcp://" + Server + ":" + Port , ClientID);
+				client = new MqttAsyncClient("tcp://" + Server + ":" + Port , ClientID);
 			}
-			
-			options.setCleanSession(false);
+			if(config.getProperty("mqttClean").equalsIgnoreCase("true")) {
+				options.setCleanSession(true);
+			} else {
+				options.setCleanSession(false);
+			}
 			options.setPassword(config.getProperty("mqttPassword").toCharArray());
 			options.setUserName(config.getProperty("mqttUsername"));
+			client.setCallback(this);
 			connect();
 			
 		} catch (MqttException e) { 
@@ -62,8 +69,8 @@ public class InitiateMQTT implements MqttCallback {
 	public void connect(){
 		LOGGER.info(" Connect MQTT");
 		try {
-			client.connect(options);
-			client.setCallback(this);
+			conToken = client.connect(options,null,null);
+			conToken.waitForCompletion();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -80,11 +87,9 @@ public class InitiateMQTT implements MqttCallback {
 	}
 	
 	public void SendMsg(String msg) {
-
 	    try {
-			this.client.publish(publishtopic, msg.getBytes(),this.QOS,this.RETAIN);
+			client.publish(publishtopic, msg.getBytes(),QOS,RETAIN);
 		} catch (MqttException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			System.exit(99);
 		}
@@ -103,10 +108,9 @@ public class InitiateMQTT implements MqttCallback {
 	}	
 	public void setSubscribe() throws MqttException {
 		LOGGER.info("Start subscription " + topic);
-		client.subscribe(topic);
+		client.subscribe(topic, QOS);
 	}
 	public void messageArrived(String ontopic, MqttMessage msg) throws Exception {
-		//TOPIC = tracker/devices/pi/mikael
 		// tracker/mikael/pi/DOL616
 		// tracker/mikael/owntracks/G2
 		// tracker/<username>/<devicetype>/<devicename>
@@ -159,11 +163,11 @@ public class InitiateMQTT implements MqttCallback {
 			sql.addRow(obj);
 		}
 		if( obj != null) {
-			LOGGER.finer("logging to SQL" + obj.toString());
-			SendMsg(obj.toString());
+			// Here we republish to enable the webtracking
+			publishtopic=Republish.replace("<user>", obj.getString("user"));
+			LOGGER.finer("Republish to " + publishtopic);
+			SendMsg(obj.toString(),publishtopic);
 		}
-		//LOGGER.info("Topic " + ontopic +" Lat " + lat + " Lon " + lon + " speed " + speed + " alt " + alt + " date " + time.toString());
-
 		
 	}
 
@@ -172,6 +176,13 @@ public class InitiateMQTT implements MqttCallback {
 	}
 
 	public void connectionLost(Throwable arg0) {
+		try {
+			Thread.sleep(10000);
+			connect();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 	}
 
@@ -179,4 +190,5 @@ public class InitiateMQTT implements MqttCallback {
 		// TODO Auto-generated method stub
 		
 	}
+
 }

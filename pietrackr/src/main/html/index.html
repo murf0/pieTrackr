@@ -13,15 +13,16 @@
     <script type="text/javascript"
       src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC93yNqEP89_kQfdoRT8OIZUOAuOYGSDDs&sensor=true">
     </script>
+    <script 
+      src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js" type="text/javascript">
+    </script>
     <script type="text/javascript">
-		client = new Messaging.Client("mqtt.murf.se", 443, "WEBID");
-		client.onConnectionLost = onConnectionLost;
-		client.onMessageArrived = onMessageArrived;
-		//var username = prompt("username:", "");
-		//var password = prompt("password:", "");
+
 		var username = getURLParameters("username");
 		var password = getURLParameters("password");
-		
+		client = new Messaging.Client("mqtt.murf.se", 443, "WEB" + username);
+		client.onConnectionLost = onConnectionLost;
+		client.onMessageArrived = onMessageArrived;
 		
 		var size=19;        
 		var img=new google.maps.MarkerImage('marker.png',           
@@ -42,6 +43,7 @@
 	    var Location;
 	    var marker;
 	    var infowindow;
+	    var deviceArray=new Array();
 		google.maps.event.addDomListener(window, 'load', initialize);
 		client.connect({onSuccess:onConnect, onFailure:onFailure, useSSL:true, userName:username, password:password});;
 		
@@ -54,31 +56,35 @@
 				title:'No Data',
 				descr:'No Data'           
 			};
+
+		}
+		function addMarker(lat, lng, descr, device) {
 			marker = new google.maps.Marker({
 				map: map,
 				title: Location.title,
-				position: new google.maps.LatLng(Location.lat, Location.lon),           
+				position: new google.maps.LatLng(lat, lon),           
 				icon: img
 			});
-			bindInfoWindow(marker, map, infowindow, "<p>" + Location.descr + "</p>",Location);  
+			infowindow.setContent(Location.descr);
+			bindInfoWindow(marker, map, infowindow, "<p>" + device + "</p>");  
+			marker.setPosition( new google.maps.LatLng( Location.lat, Location.lon ) );
 		}
 		
-		
 		function onMessageArrived(message) {
-			//console.log("onMessageArrived:"+message.payloadString);
+			console.log("onMessageArrived:"+message.payloadString);
 			//59.187668333,17.618505,0.026,48.3,1398277504
 			//59.187676667,17.618515,1.09,48.4,1398277505
-			var data = message.payloadString;
-			var data2 = data.split(",");
+
+			var data2 = jQuery.parseJSON(message.payloadString);
 			// Add Fuzzy later to update. aka minidiff 
-			if((Location.lat - data2[0]) * -1 > 0.00001 || (Location.lon - data2[1]) * -1 > 0.00001) {
-				Location.lat = data2[0];
-				Location.lon = data2[1];
-				Location.descr = "Speed: " + data2[2] + " Alt: " + data2[3];
-				infowindow.setContent(Location.descr);
-				marker.setPosition( new google.maps.LatLng( Location.lat, Location.lon ) );
+			if((Location.lat - data2.lat) * -1 > 0.00001 || (Location.lon - data2.lon) * -1 > 0.00001) {
+				Location.lat = data2.lat;
+				Location.lon = data2.lon;
+				Location.descr = "First " + data2.topic.split("/")[4] + "Speed: " + data2.speed + " Alt: " + data2.Alt;
+				device = data2.topic.split("/")[4];
+				addMarker(Location.lat, Location.lon, Location.descr, device );
 		    	map.panTo( new google.maps.LatLng( Location.lat, Location.lon  ) );
-	    	}
+	    	}	    	
 		}
 		
 		function bindInfoWindow(marker, map, infowindow, html) { 
@@ -92,15 +98,9 @@
 		}
 		
 		function onConnect() {
-		  // Once a connection has been made, make a subscription and send a message.
+		  // Once a connection has been made, make a subscription
 		  console.log("onConnect");
-		  client.subscribe("tracker/#", {qos:1,onSuccess:onSubscribe,onFailure:onSubscribeFailure});
-		  
-		  /*
-		  message = new Messaging.Message("Hello");
-		  message.destinationName = "/World";
-		  client.send(message); 
-		  */
+		  client.subscribe("display/" + username + "/web/#", {qos:1,onSuccess:onSubscribe,onFailure:onSubscribeFailure});
 		};
 		
 		function onSubscribe(x) {

@@ -1,6 +1,7 @@
 package se.murf.pietrackr.server;
 
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import se.murf.pietrackr.Configuration;
@@ -30,6 +31,7 @@ public class Server {
 		/**
 		 * Parse Configuration
 		 */
+		LOGGER.setLevel(Level.FINEST);
 		LOGGER.info("Loading Configruation Input");
 		config = new Configuration("server.config");
 		LOGGER.info("Connect to MySQL");
@@ -37,7 +39,6 @@ public class Server {
 		
 		LOGGER.info("Connect to MQTT");
 		InitiateMQTT receiver = new InitiateMQTT(config);
-		
 		receiver.setSql(sql);
 		receiver.setSubscribe();
 		while(keepRunning) {
