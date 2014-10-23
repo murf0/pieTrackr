@@ -44,7 +44,7 @@ public class Client  {
 		 * Send Message to MQTT
 		 **/
 		//sender.SendMsg("firsttstmsg");
-
+		//System.exit(99);
 		Runnable gps = new GpsHandler(config,sender);
 		Thread worker = new Thread(gps);
 		// We can set the name of the thread

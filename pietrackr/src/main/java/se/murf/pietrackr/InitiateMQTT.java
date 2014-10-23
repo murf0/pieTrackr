@@ -32,7 +32,7 @@ public class InitiateMQTT implements MqttCallback {
 	
 	public InitiateMQTT(Configuration config) throws Exception  {
 		this.topic=config.getProperty("mqttTopic");
-		this.topic=config.getProperty("mqttTopic");
+		this.publishtopic=config.getProperty("mqttTopic");
 		this.Server=config.getProperty("mqttServer");
 		this.Port=config.getProperty("mqttPort");
 		this.ClientID=config.getProperty("mqttClientid");
