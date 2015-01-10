@@ -1,3 +1,34 @@
+<?php
+$servername = "localhost";
+$username = "web";
+$password = '<CHANGE>';
+
+// Create connection
+$conn = new mysqli($servername, $username, $password);
+
+// Check connection
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+$query="SELECT * FROM tracking.raw ORDER BY id DESC LIMIT 1";
+if(!$result = $conn->query($query)){
+    die('There was an error running the query [' . $db->error . ']');
+}
+while($row = $result->fetch_assoc()){
+        $timestamp=$row['timestamp'];
+        $latitude=$row['latitude'];
+        $longitude=$row['longitude'];
+        $altitude=$row['altitude'];
+	$time_fmt="Time: ".gmdate("Y-m-d\T H:i:s\Z", $timestamp);
+        #echo "Time: " . gmdate("Y-m-d\TH:i:s\Z", $timestamp) . "Lat: " . $latitude . "Lon: " . longitude . "Alt: " . $altitude . "</ br>";
+    /**
+    device
+    user
+    topic
+    speed
+    **/
+}
+?>
 <!DOCTYPE html>
 <html>
   <head>
@@ -13,16 +44,15 @@
     <script type="text/javascript"
       src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC93yNqEP89_kQfdoRT8OIZUOAuOYGSDDs&sensor=true">
     </script>
-    <script 
-      src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js" type="text/javascript">
-    </script>
     <script type="text/javascript">
-
-		var username = getURLParameters("username");
-		var password = getURLParameters("password");
-		client = new Messaging.Client("mqtt.murf.se", 443, "WEB" + username);
+		client = new Paho.MQTT.Client("mqtt.murf.se", 443, "WEBID");
 		client.onConnectionLost = onConnectionLost;
 		client.onMessageArrived = onMessageArrived;
+		//var username = prompt("username:", "");
+		//var password = prompt("password:", "");
+		var username = getURLParameters("username");
+		var password = getURLParameters("password");
+		
 		
 		var size=19;        
 		var img=new google.maps.MarkerImage('marker.png',           
@@ -34,7 +64,7 @@
 			content: ''
 		});
 		var mapOptions = {
-			center: new google.maps.LatLng(57.704156122,11.886816122),
+			center: new google.maps.LatLng(<?php echo $latitude.",".$longitude;?>),
 			zoom: 17,
 			mapTypeId: google.maps.MapTypeId.ROADMAP
 			
@@ -43,7 +73,6 @@
 	    var Location;
 	    var marker;
 	    var infowindow;
-	    var deviceArray=new Array();
 		google.maps.event.addDomListener(window, 'load', initialize);
 		client.connect({onSuccess:onConnect, onFailure:onFailure, useSSL:true, userName:username, password:password});;
 		
@@ -51,40 +80,41 @@
 		function initialize() {
 			map = new google.maps.Map(document.getElementById("map-canvas"),mapOptions);
 			Location = {
-				lat:57.704156122,
-				lon:11.886816122, 
-				title:'No Data',
-				descr:'No Data'           
+				lat:<?php echo $latitude;?>,
+				lon:<?php echo $longitude;?>,
+				title:'<?php echo $time_fmt;?>',
+				descr:'<?php echo $time_fmt;?>'           
 			};
-
-		}
-		function addMarker(lat, lng, descr, device) {
 			marker = new google.maps.Marker({
 				map: map,
 				title: Location.title,
-				position: new google.maps.LatLng(lat, lon),           
+				position: new google.maps.LatLng(Location.lat, Location.lon),           
 				icon: img
 			});
-			infowindow.setContent(Location.descr);
-			bindInfoWindow(marker, map, infowindow, "<p>" + device + "</p>");  
-			marker.setPosition( new google.maps.LatLng( Location.lat, Location.lon ) );
+			bindInfoWindow(marker, map, infowindow, "<p>" + Location.descr + "</p>",Location);  
 		}
+		
 		
 		function onMessageArrived(message) {
 			console.log("onMessageArrived:"+message.payloadString);
 			//59.187668333,17.618505,0.026,48.3,1398277504
 			//59.187676667,17.618515,1.09,48.4,1398277505
-
-			var data2 = jQuery.parseJSON(message.payloadString);
+			var data = message.payloadString;
+			var data2 = JSON.parse(data);
 			// Add Fuzzy later to update. aka minidiff 
+			console.log("Location.lat: " + Location.lat + " Location.lon: " + Location.lon);
+			console.log("Location.lat: " + data2.lat + " Location.lon: " + data2.lon);
+			console.log((Location.lat - data2.lat) * -1);
+			console.log((Location.lon - data2.lon) * -1);
 			if((Location.lat - data2.lat) * -1 > 0.00001 || (Location.lon - data2.lon) * -1 > 0.00001) {
+				console.log("Updating position");
 				Location.lat = data2.lat;
 				Location.lon = data2.lon;
-				Location.descr = "First " + data2.topic.split("/")[4] + "Speed: " + data2.speed + " Alt: " + data2.Alt;
-				device = data2.topic.split("/")[4];
-				addMarker(Location.lat, Location.lon, Location.descr, device );
-		    	map.panTo( new google.maps.LatLng( Location.lat, Location.lon  ) );
-	    	}	    	
+				Location.descr = "Speed: " + data2.speed + " Alt: " + data2.alt;
+				infowindow.setContent(Location.descr);
+				marker.setPosition( new google.maps.LatLng( Location.lat, Location.lon ) );
+		    		map.panTo( new google.maps.LatLng( Location.lat, Location.lon  ) );
+	    		}
 		}
 		
 		function bindInfoWindow(marker, map, infowindow, html) { 
@@ -98,9 +128,15 @@
 		}
 		
 		function onConnect() {
-		  // Once a connection has been made, make a subscription
-		  console.log("onConnect");
-		  client.subscribe("display/" + username + "/web/#", {qos:1,onSuccess:onSubscribe,onFailure:onSubscribeFailure});
+		  // Once a connection has been made, make a subscription and send a message.
+			console.log("onConnect display/" + username + "/web");
+		  client.subscribe("display/" + username + "/web", {qos:1,onSuccess:onSubscribe,onFailure:onSubscribeFailure});
+		  
+		  /*
+		  message = new Messaging.Message("Hello");
+		  message.destinationName = "/World";
+		  client.send(message); 
+		  */
 		};
 		
 		function onSubscribe(x) {

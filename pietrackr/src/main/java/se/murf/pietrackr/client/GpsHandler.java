@@ -16,6 +16,7 @@ import de.taimos.gpsd4java.types.TPVObject;
 
 public class GpsHandler implements Runnable {
 	int port=0;
+	int delay=0;
 	String server="NONE";
 	InitiateMQTT sender;
 	private final static Logger LOGGER = Logger.getLogger(GpsHandler.class.getName());
@@ -34,6 +35,11 @@ public class GpsHandler implements Runnable {
 		port = Integer.parseInt(config.getProperty("gpsdPort"));
 		server = config.getProperty("gpsdServer");
 		sender = insender;
+		if(! config.getProperty("gpsdDelay").isEmpty()) {
+			delay = Integer.parseInt(config.getProperty("gpsdDelay"));
+		} else {
+			delay = 1000;
+		}
 	}
 	
 	public void run() {
@@ -68,7 +74,7 @@ public class GpsHandler implements Runnable {
 				System.setOut(originalStream);
 				//System.out.println("Runo: " + i);
 				try {
-				Thread.sleep(1000);
+				Thread.sleep(delay);
 				} catch (InterruptedException ex) {
 					Thread.currentThread().interrupt(); // very important
 			        break;

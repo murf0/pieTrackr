@@ -1,41 +1,59 @@
 package se.murf.pietrackr.server;
+
+
+import java.beans.PropertyVetoException;
+import java.io.IOException;
 import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.PreparedStatement;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 import org.json.JSONObject;
 
 import se.murf.pietrackr.Configuration;
 
-
-
-
 public class SqlConnector {
 	private Connection con = null;
     private ResultSet rs = null;
     private PreparedStatement pst = null;
+    
+    private ComboPooledDataSource cpds;
+    
     Logger LOGGER = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
     
     private String url;
     private String user;
     private String password;
 
-	public  SqlConnector(Configuration config) {
+	public  SqlConnector(Configuration config) throws IOException, SQLException, PropertyVetoException {
+		cpds = new ComboPooledDataSource();
+        
+        // the settings below are optional -- c3p0 can work with defaults
+        cpds.setMinPoolSize(5);
+        cpds.setAcquireIncrement(5);
+        cpds.setMaxPoolSize(20);
+        cpds.setMaxStatements(180);
+        
 		url = config.getProperty("sqlUrl");
 		user = config.getProperty("sqlUser");
 		password = config.getProperty("sqlPassword");
 		try {
-            con = DriverManager.getConnection(url, user, password);
-           // pst = con.prepareStatement("INSERT INTO raw(timestamp,device,user,topic,latitude,longitude,speed,altitude,comment) VALUES(?,?,?,?,?,?,?,?,?)");
-            pst = con.prepareStatement("INSERT INTO raw(timestamp,device,user,topic,latitude,longitude,speed,altitude) VALUES(?,?,?,?,?,?,?,?)");
-        } catch (SQLException ex) {
+			cpds.setDriverClass("com.mysql.jdbc.Driver"); //loads the jdbc driver
+	        cpds.setJdbcUrl(url);
+	        cpds.setUser(user);
+	        cpds.setPassword(password);
+	        con = cpds.getConnection();
+	        pst = con.prepareStatement("INSERT INTO raw(timestamp,device,user,topic,latitude,longitude,speed,altitude) VALUES(?,?,?,?,?,?,?,?)");
+	} catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
         }
 	}
+
 	/*
 		create table raw (
 		id INT AUTO_INCREMENT PRIMARY KEY,
@@ -89,4 +107,9 @@ public class SqlConnector {
             LOGGER.log(Level.WARNING, ex.getMessage(), ex);
         }
 	}
+	
+    public Connection getConnection() throws SQLException {
+        return this.cpds.getConnection();
+    }
+
 }

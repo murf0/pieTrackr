@@ -26,7 +26,6 @@ public class Client  {
 		        try {
 					mainThread.join();
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 		    }
@@ -49,7 +48,7 @@ public class Client  {
 		Thread worker = new Thread(gps);
 		// We can set the name of the thread
 		worker.setName("GPSThread1");
-		System.out.println("Starting GPS Thread" + worker.getName());
+		LOGGER.info("Starting GPS Thread" + worker.getName());
 		worker.start();
 		// Remember the thread for later usage
 		threads.add(worker);

@@ -1,6 +1,3 @@
-/**
- * 
- */
 package se.murf.pietrackr;
 
 import java.io.FileInputStream;
@@ -10,9 +7,14 @@ import java.util.Enumeration;
 import java.util.Properties;
 
 /**
- * @author mikael
- *
+ * Configuration file reader. 
+ * @author Mikael Murf Mellgren
+ * @version 1.0.0
+ * @email mikael@murf.se
+ * @license MIT
+ * @web murf.se
  */
+
 public class Configuration {
 	Properties prop = new Properties();
 	InputStream input = null;
@@ -29,9 +31,9 @@ public class Configuration {
 			while (e.hasMoreElements()) {
 				String key = (String) e.nextElement();
 				String value = prop.getProperty(key);
-				System.out.println("Key : " + key + ", Value : " + value);
+				System.err.println("Key : " + key + ", Value : " + value);
 			}
-
+				
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		} finally {
@@ -45,6 +47,11 @@ public class Configuration {
 		}
 	}
 	public String getProperty(String string) {
-		return prop.getProperty(string);
+		if (prop.containsKey(string)) {
+			return prop.getProperty(string).trim();
+		} else {
+			throw new RuntimeException("No " + string + " value in ConfigurationFile");
+		}
+			
 	}
 }
