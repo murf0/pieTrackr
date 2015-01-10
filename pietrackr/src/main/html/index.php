@@ -44,39 +44,8 @@ while($row = $result->fetch_assoc()){
     <script type="text/javascript"
       src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC93yNqEP89_kQfdoRT8OIZUOAuOYGSDDs&sensor=true">
     </script>
+    <script src="config.js" type="text/javascript"></script>
     <script type="text/javascript">
-		client = new Paho.MQTT.Client("mqtt.murf.se", 443, "WEBID");
-		client.onConnectionLost = onConnectionLost;
-		client.onMessageArrived = onMessageArrived;
-		//var username = prompt("username:", "");
-		//var password = prompt("password:", "");
-		var username = getURLParameters("username");
-		var password = getURLParameters("password");
-		
-		
-		var size=19;        
-		var img=new google.maps.MarkerImage('marker.png',           
-			new google.maps.Size(size, size),
-			new google.maps.Point(0,0),
-			new google.maps.Point(size/2, size/2)
-		);
-		var infowindow =  new google.maps.InfoWindow({
-			content: ''
-		});
-		var mapOptions = {
-			center: new google.maps.LatLng(<?php echo $latitude.",".$longitude;?>),
-			zoom: 17,
-			mapTypeId: google.maps.MapTypeId.ROADMAP
-			
-	    };
-	    var map;
-	    var Location;
-	    var marker;
-	    var infowindow;
-		google.maps.event.addDomListener(window, 'load', initialize);
-		client.connect({onSuccess:onConnect, onFailure:onFailure, useSSL:true, userName:username, password:password});;
-		
-
 		function initialize() {
 			map = new google.maps.Map(document.getElementById("map-canvas"),mapOptions);
 			Location = {
@@ -93,8 +62,34 @@ while($row = $result->fetch_assoc()){
 			});
 			bindInfoWindow(marker, map, infowindow, "<p>" + Location.descr + "</p>",Location);  
 		}
+		function bindInfoWindow(marker, map, infowindow, html) { 
+			google.maps.event.addListener(marker, 'mouseover', function() {
+				infowindow.setContent(html); 
+				infowindow.open(map, marker); 
+			});
+			google.maps.event.addListener(marker, 'mouseout', function() {
+				infowindow.close();
+			}); 
+		}
 		
-		
+		//MQTT Stuff 
+		function MQTTConnect() {
+			mqtt = new Paho.MQTT.Client(host,port,"web_" + parseInt(Math.random() * 100,10));
+			var options = {
+				timeout: 3,
+				useSSL: useTLS,
+				cleanSession: cleansession,
+				onSuccess: onConnect,
+				onFailure: onFailure,
+				userName: username,
+				password: password
+			};
+
+			mqtt.onConnectionLost = onConnectionLost;
+			mqtt.onMessageArrived = onMessageArrived;
+			console.log("Host="+ host + ", port=" + port + " TLS = " + useTLS + " username=" + username + " password=" + password);
+			mqtt.connect(options);
+		}
 		function onMessageArrived(message) {
 			console.log("onMessageArrived:"+message.payloadString);
 			//59.187668333,17.618505,0.026,48.3,1398277504
@@ -116,45 +111,25 @@ while($row = $result->fetch_assoc()){
 		    		map.panTo( new google.maps.LatLng( Location.lat, Location.lon  ) );
 	    		}
 		}
-		
-		function bindInfoWindow(marker, map, infowindow, html) { 
-			google.maps.event.addListener(marker, 'mouseover', function() {
-				infowindow.setContent(html); 
-				infowindow.open(map, marker); 
-			});
-			google.maps.event.addListener(marker, 'mouseout', function() {
-				infowindow.close();
-			}); 
-		}
-		
 		function onConnect() {
-		  // Once a connection has been made, make a subscription and send a message.
-			console.log("onConnect display/" + username + "/web");
-		  client.subscribe("display/" + username + "/web", {qos:1,onSuccess:onSubscribe,onFailure:onSubscribeFailure});
-		  
-		  /*
-		  message = new Messaging.Message("Hello");
-		  message.destinationName = "/World";
-		  client.send(message); 
-		  */
+			// Once a connection has been made, make a subscription and send a message.
+			console.log("onConnect Sub to: display/" + username + "/web");
+			mqtt.subscribe("display/" + username + "/web", {qos:1,onSuccess:onSubscribe,onFailure:onSubscribeFailure});
 		};
-		
 		function onSubscribe(x) {
-		  console.log('subscribe');
+		  console.log('Subscribed');
 		}
-		
 		function onSubscribeFailure(x) {
-		  console.log('subscribe failed');
+		  console.log('Subscribe failed: ' + message.errorMessage);
 		}
-		
 		function onFailure(responseObject) {
-		  console.log(responseObject);
-		  //connect();
+			console.log("onFailure: " + responseObject.errorMessage + "Retrying");
+			setTimeout(MQTTConnect, reconnectTimeout);
 		}
 		function onConnectionLost(responseObject) {
 		  if (responseObject.errorCode !== 0)
 		    console.log("onConnectionLost:"+responseObject.errorMessage);
-		  //connect();
+		    setTimeout(MQTTConnect, reconnectTimeout);
 		}
 		function getURLParameters(paramName) {
 			var sURL = window.document.URL.toString();  
@@ -186,6 +161,34 @@ while($row = $result->fetch_assoc()){
 		    }
 		
 		}
+		    	
+		
+		//Start The Goddamn Program
+		var username = getURLParameters("username");
+		var password = getURLParameters("password");
+		MQTTConnect();
+		
+		var size=19;        
+		var img=new google.maps.MarkerImage('marker.png',           
+			new google.maps.Size(size, size),
+			new google.maps.Point(0,0),
+			new google.maps.Point(size/2, size/2)
+		);
+		var infowindow =  new google.maps.InfoWindow({
+			content: ''
+		});
+		var mapOptions = {
+			center: new google.maps.LatLng(<?php echo $latitude.",".$longitude;?>),
+			zoom: 17,
+			mapTypeId: google.maps.MapTypeId.ROADMAP
+			
+	    };
+	    var map;
+	    var Location;
+	    var marker;
+	    var infowindow;
+		google.maps.event.addDomListener(window, 'load', initialize);
+		
     </script>
   </head>
   <body>
