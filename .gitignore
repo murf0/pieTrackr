@@ -2,3 +2,4 @@
 *.config
 out.log*
 .DS_store
+.settings
