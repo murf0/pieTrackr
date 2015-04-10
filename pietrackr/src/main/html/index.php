@@ -88,14 +88,13 @@ while($row = $result->fetch_assoc()){
 			};
 			console.log("Location.lat: " + msgjson.lat + " Location.lon: " + msgjson.lon);
 			var myDate = new Date(msgjson.tst *1000);
-			var MONTH1=(parseInt(myDate.getUTCMonth()) + 1).toString();
-			var YEAR=myDate.getUTCFullYear()
-			var MONTH=prezero(MONTH1);
-			var DAY=prezero(myDate.getUTCDate());
-			var HOURS=prezero(myDate.getUTCHours());
-			var MINUTES=prezero(myDate.getUTCMinutes());
-			var SECONDS=prezero(myDate.getUTCSeconds());
-			var time=YEAR+"-"+MONTH+"-"+DAY+" "+HOURS+":"+MINUTES+":"+SECONDS+" (CET)";
+			var MONTH=parseInt(myDate.getUTCMonth()) + 1;
+			if(MONTH<10) {
+				var parsed="0" + MONTH.toString();
+			} else {
+				var parsed=MONTH.toString();
+			}
+			var time=myDate.getUTCFullYear()+"-"+parsed+"-"+myDate.getUTCDate()+" "+myDate.getUTCHours()+":"+myDate.getUTCMinutes()+":"+myDate.getUTCSeconds()+" (CET)";
 			Location.descr = "Speed: " + msgjson.speed + " Alt: " + msgjson.alt;
 			var markerinfo = time+'<br /><b>'+msgjson.user+'</b><br />'+message.destinationName;
 			addMarker(msgjson.lat,msgjson.lon,markerinfo, msgjson.user); //add marker based on lattitude and longittude, using timestamp for description for now
@@ -209,15 +208,15 @@ while($row = $result->fetch_assoc()){
 					currentPopup = null;
 				}
 				
-				//zoom in on the marker need to wait for it to be idle. Zoom wont function otherwise..
+				//zoom in on the marker
+				
+    			map.setCenter(marker.getPosition());
+    			//open the info box popup
+				popup.open(map, marker);
 				var listener = google.maps.event.addListener(map, "idle", function() { 
 					if (map.getZoom() > 15) map.setZoom(15); 
 					google.maps.event.removeListener(listener); 
 				});
-    			map.setCenter(marker.getPosition());
-    			//open the info box popup
-				popup.open(map, marker);
-				
 				currentPopup = popup;
 			});
 
@@ -229,22 +228,13 @@ while($row = $result->fetch_assoc()){
 				//map.panTo(center);
 				currentPopup = null;
 			});
-			
+
 			//zoom in on this latest marker
-			//selectmarker(personArray.indexOf(person));
+			selectmarker(personArray.indexOf(person));
 		};
 		//function for selecting the latest marker for a persion
 		function selectmarker(person) {
     		google.maps.event.trigger(latestlocations[person], 'click');
-		};
-		function prezero(data) {
-			data = parseInt(data);
-			if(data<10) {
-				var parsed="0" + data.toString();
-			} else {
-				var parsed=data.toString();
-			}
-			return parsed;
 		};
 		function initMap() {
 			map = new google.maps.Map(document.getElementById("map"), {
