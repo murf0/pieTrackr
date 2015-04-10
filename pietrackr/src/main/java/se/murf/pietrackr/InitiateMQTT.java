@@ -142,6 +142,7 @@ public class InitiateMQTT implements MqttCallback {
 			obj.put("speed",data2[2]);
 			obj.put("alt",data2[3]);
 			obj.put("tst",Long.parseLong(data2[4]));
+			obj.put("dist",data2[5]);
 			obj.put("batt", new Integer(100));
 			obj.put("device","pi");
 			obj.put("user",user);

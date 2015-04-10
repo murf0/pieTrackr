@@ -48,7 +48,7 @@ public class SqlConnector {
 	        cpds.setUser(user);
 	        cpds.setPassword(password);
 	        con = cpds.getConnection();
-	        pst = con.prepareStatement("INSERT INTO raw(timestamp,device,user,topic,latitude,longitude,speed,altitude) VALUES(?,?,?,?,?,?,?,?)");
+	        pst = con.prepareStatement("INSERT INTO raw(timestamp,device,user,topic,latitude,longitude,speed,dist,altitude) VALUES(?,?,?,?,?,?,?,?,?)");
 	} catch (SQLException ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
         }
@@ -64,6 +64,7 @@ public class SqlConnector {
 		latitude VARCHAR(20),
 		longitude VARCHAR(20),
 		speed VARCHAR(10),
+		dist VARCHAR(10),
 		altitude VARCHAR(10),
 		comment VARCHAR(300)
 		);
@@ -80,7 +81,8 @@ public class SqlConnector {
 					pst.setString(5, obj.getString("lat")); //latitude
 					pst.setString(6, obj.getString("lon")); //longitude
 					pst.setString(7, obj.getString("speed")); //speed
-					pst.setString(8, obj.getString("alt")); //altitude
+					pst.setString(8, obj.getString("dist")); //speed
+					pst.setString(9, obj.getString("alt")); //altitude
 					//pst.setString(9, ""); //comment not in sql clause must add above
 					pst.executeUpdate();
 				} catch (SQLException ex) {

@@ -20,7 +20,7 @@ public class GpsHandler implements Runnable {
 	String server="NONE";
 	InitiateMQTT sender;
 	private final static Logger LOGGER = Logger.getLogger(GpsHandler.class.getName());
-
+	Double lastLON=0.0,lastLAT=0.0;
 	
 	PrintStream originalStream = System.out;
 	PrintStream dummyStream    = new PrintStream(new OutputStream(){
@@ -41,7 +41,20 @@ public class GpsHandler implements Runnable {
 			delay = 1000;
 		}
 	}
-	
+	private double distance(double lat1, double lon1, double lat2, double lon2) {
+		  double theta = lon1 - lon2;
+		  double dist = Math.sin(deg2rad(lat1)) * Math.sin(deg2rad(lat2)) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.cos(deg2rad(theta));
+		  dist = Math.acos(dist);
+		  dist = rad2deg(dist);
+		  dist = dist * 60 * 1.1515 * 1.609344 / 1000;
+		  return (dist);
+		}
+		private double deg2rad(double deg) {
+		  return (deg * Math.PI / 180.0);
+		}
+		private double rad2deg(double rad) {
+		  return (rad * 180 / Math.PI);
+		}
 	public void run() {
 		try {
 			final GPSdEndpoint ep = new GPSdEndpoint(server, port, new ResultParser());
@@ -49,14 +62,18 @@ public class GpsHandler implements Runnable {
 				@Override
 				public void handleTPV(final TPVObject tpv) {
 					//System.setOut(originalStream);
-					String msg = Double.toString(tpv.getLatitude()) +
-							"," +Double.toString(tpv.getLongitude()) +
-							"," +Double.toString(tpv.getSpeed()) +
-							"," +Double.toString(tpv.getAltitude()) +
-							"," +Long.toString((long) tpv.getTimestamp()) +
-							"";
-					sender.SendMsg(msg);
-					LOGGER.info("Sent: " + msg);
+					Double dist = distance(lastLAT,lastLON,tpv.getLongitude(),tpv.getLongitude());
+					if(dist > 100) {
+						String msg = Double.toString(tpv.getLatitude()) +
+								"," +Double.toString(tpv.getLongitude()) +
+								"," +Double.toString(tpv.getSpeed()) +
+								"," +Double.toString(tpv.getAltitude()) +
+								"," +Long.toString((long) tpv.getTimestamp()) +
+								"," +Double.toString(dist) +
+								"";
+						sender.SendMsg(msg);
+						LOGGER.info("Sent: " + msg);
+					}
 					//System.setOut(dummyStream);
 				}
 			};
