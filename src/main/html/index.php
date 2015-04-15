@@ -21,7 +21,10 @@ while($row = $result->fetch_assoc()){
         $altitude=$row['altitude'];
         $user=$row['user'];
         $topic="display/".$user."/web";
-		$markerinfo=gmdate("Y-m-d\T H:i:s", $timestamp)." (CET)<br /><b>".$user."</b><br />".$topic;
+        $device=strrchr($row['topic'],"/");
+        $device = substr($device, 1);
+        //die("topic=".$row['topic']." strrchr=".strrchr($row['topic'],"/")." Device=".$device."\n");
+		$markerinfo=gmdate("Y-m-d\T H:i:s", $timestamp)." (CET)<br /><b>".ucfirst($user)." - ".$device."</b><br />".$topic;
   		 /**
 		device
 		user
@@ -58,7 +61,6 @@ while($row = $result->fetch_assoc()){
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js" type="text/javascript"></script>
     <script type="text/javascript" src="config.js" type="text/javascript"></script>
     <script type="text/javascript">
-		
 		//MQTT Stuff 
 		function MQTTConnect() {
 			mqtt = new Paho.MQTT.Client(host,port,"web_" + parseInt(Math.random() * 100,10));
@@ -96,8 +98,10 @@ while($row = $result->fetch_assoc()){
 			}
 			var time=myDate.getUTCFullYear()+"-"+parsed+"-"+myDate.getUTCDate()+" "+myDate.getUTCHours()+":"+myDate.getUTCMinutes()+":"+myDate.getUTCSeconds()+" (CET)";
 			Location.descr = "Speed: " + msgjson.speed + " Alt: " + msgjson.alt;
-			var markerinfo = time+'<br /><b>'+msgjson.user+'</b><br />'+message.destinationName;
-			addMarker(msgjson.lat,msgjson.lon,markerinfo, msgjson.user); //add marker based on lattitude and longittude, using timestamp for description for now
+			var device = msgjson.topic.substring(msgjson.topic.lastIndexOf("/")+1);
+			msgjson.user = msgjson.user.charAt(0).toUpperCase() + msgjson.user.slice(1);
+			var markerinfo = time+'<br /><b>'+msgjson.user+' - '+device+'</b><br />'+message.destinationName;
+			addMarker(msgjson.lat,msgjson.lon,markerinfo, msgjson.user+device, msgjson.user+' - '+device); //add marker based on lattitude and longittude, using timestamp for description for now
 			center = bounds.getCenter(); //center on marker, zooms in to far atm, needs to be fixed!
 			map.fitBounds(bounds);
 		}
@@ -153,8 +157,8 @@ while($row = $result->fetch_assoc()){
 		}
 		
 		//Google Maps Stuff
-		function addMarker(lat, lng, info, person) {
-			//console.log('addmaker -- ' + lat + ' ' + lng + ' ' + info + ' ' + person);
+		function addMarker(lat, lng, info, person, nick) {
+			console.log('addMarker -- ' + lat + ' ' + lng + ' ' + info + ' ' + person + ' ' + nick);
 			
 			var pinColour = 'blue' //default colour of pin
 				
@@ -163,7 +167,9 @@ while($row = $result->fetch_assoc()){
 				personArray.push(person); //add the new person to the array
 				pinColour = pinColourArray[personArray.indexOf(person)]; 				// add the new person to the legend on the map
 				var div = document.createElement('div');
-				div.innerHTML = '<img onclick="selectmarker('+ personArray.indexOf(person) +')" src="https://maps.google.com/mapfiles/ms/micons/' + pinColour + '.png"> ' + person;
+				// + nick.capitalize()
+				nick = nick.charAt(0).toUpperCase() + nick.slice(1);
+				div.innerHTML = '<img onclick="selectmarker('+ personArray.indexOf(person) +')" src="https://maps.google.com/mapfiles/ms/micons/' + pinColour + '.png">' + nick;
 				legend.appendChild(div);
 				//create a new item for person
 				latestlocations.push({
@@ -265,13 +271,12 @@ while($row = $result->fetch_assoc()){
 			$altitude
 			$time_fmt
 			$user
-			device
+			$device
 			topic
 			speed
 			**/
-			echo "addMarker(".$latitude.",".$longitude.",'".$markerinfo."','".$user."');";
+			echo "addMarker(".$latitude.",".$longitude.",'".$markerinfo."','".$user.$device."','".$user." - ".$device."');";
 		    ?>
-		    //addMarker(msgjson.lat,msgjson.lon,markerinfo, message.destinationName);
 		    MQTTConnect();
 		};
 		
