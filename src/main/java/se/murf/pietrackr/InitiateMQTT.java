@@ -37,6 +37,8 @@ public class InitiateMQTT implements MqttCallback {
 		this.Port=config.getProperty("mqttPort");
 		this.ClientID=config.getProperty("mqttClientid");
 		this.Republish=config.getProperty("mqttRepublish");
+		//pop off the # for server publishing
+		this.publishtopic=this.publishtopic.substring(0,this.publishtopic.indexOf("#"));
 		options = new MqttConnectOptions();
 		try {
 			Properties props = new Properties();
@@ -60,9 +62,12 @@ public class InitiateMQTT implements MqttCallback {
 			options.setPassword(config.getProperty("mqttPassword").toCharArray());
 			options.setUserName(config.getProperty("mqttUsername"));
 			client.setCallback(this);
+			LOGGER.fine("Before Connect");
 			connect();
+			LOGGER.fine("After Connect");
 			
-		} catch (MqttException e) { 
+		} catch (MqttException e) {
+			LOGGER.fine("Exception in initiation");
 			e.printStackTrace();
 		}
 	}
@@ -71,7 +76,9 @@ public class InitiateMQTT implements MqttCallback {
 		try {
 			conToken = client.connect(options,null,null);
 			conToken.waitForCompletion();
+			SendMsg("PCon");
 		} catch (Exception e) {
+			LOGGER.fine("Exception in connet();");
 			e.printStackTrace();
 		}
 	}
@@ -126,50 +133,54 @@ public class InitiateMQTT implements MqttCallback {
 		}
 		*/
 		LOGGER.finer(ontopic + " " + new String (msg.getPayload()));
-		String data= new String (msg.getPayload());
+		String data= new String(msg.getPayload());
 		String user= ontopic.split("/")[1];
 		
 		JSONObject obj;
 		//owntracks:  {"_type": "location", "lat": "58.0396857", "lon": "12.7939241", "tst": "1398365109", "acc": "25.46", "batt": "51"}
 		//
-		if(ontopic.contains("/pi/")) {
-			LOGGER.finest("Pi Parsing");
-			obj=new JSONObject();
-			obj.put("_type","location");
-			String[] data2 = data.split(",");
-			obj.put("lat",data2[0]);
-			obj.put("lon",data2[1]);
-			obj.put("speed",data2[2]);
-			obj.put("alt",data2[3]);
-			obj.put("tst",Long.parseLong(data2[4]));
-			obj.put("dist",data2[5]);
-			obj.put("batt", new Integer(100));
-			obj.put("device","pi");
-			obj.put("user",user);
-			obj.put("topic",ontopic);
-		} else if(ontopic.contains("/owntracks/")) {
-			LOGGER.finest("Owntracks Parsing");
-			obj=new JSONObject(data);
-			obj.put("device","owntracks");
-			obj.put("speed","0"); //owntracks does not send
-			obj.put("alt","0"); //owntracks does not send
-			obj.put("user",user);
-			obj.put("topic",ontopic);
+		if(!data.contains("PCon")) {
+			if(ontopic.contains("/pi/")) {
+				LOGGER.finest("Pi Parsing");
+				obj=new JSONObject();
+				obj.put("_type","location");
+				String[] data2 = data.split(",");
+				obj.put("lat",data2[0]);
+				obj.put("lon",data2[1]);
+				obj.put("speed",data2[2]);
+				obj.put("alt",data2[3]);
+				obj.put("tst",Long.parseLong(data2[4]));
+				obj.put("dist",data2[5]);
+				obj.put("batt", new Integer(100));
+				obj.put("device","pi");
+				obj.put("user",user);
+				obj.put("topic",ontopic);
+			} else if(ontopic.contains("/owntracks/")) {
+				LOGGER.finest("Owntracks Parsing");
+				obj=new JSONObject(data);
+				obj.put("device","owntracks");
+				obj.put("speed","0"); //owntracks does not send
+				obj.put("alt","0"); //owntracks does not send
+				obj.put("user",user);
+				obj.put("topic",ontopic);
+				obj.put("dist","0");  //owntracks does not send
+			} else {
+				LOGGER.info("Unknown Topic " + ontopic);
+				obj = null;
+			}
+			if( sql != null && obj != null) {
+				LOGGER.finer("logging to SQL" + obj.toString());
+				sql.addRow(obj);
+			}
+			if( obj != null) {
+				// Here we republish to enable the webtracking
+				publishtopic=Republish.replace("<user>", obj.getString("user"));
+				LOGGER.finer("Republish to " + publishtopic);
+				SendMsg(obj.toString(),publishtopic);
+			}
 		} else {
-			LOGGER.info("Unknown Topic " + ontopic);
-			obj = null;
+			LOGGER.info("TCon Recieved Client connected:" + user);
 		}
-		if( sql != null && obj != null) {
-			LOGGER.finer("logging to SQL" + obj.toString());
-			sql.addRow(obj);
-		}
-		if( obj != null) {
-			// Here we republish to enable the webtracking
-			publishtopic=Republish.replace("<user>", obj.getString("user"));
-			LOGGER.finer("Republish to " + publishtopic);
-			SendMsg(obj.toString(),publishtopic);
-		}
-		
 	}
 
 	public void setSql(SqlConnector insql) {

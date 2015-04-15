@@ -41,20 +41,18 @@ public class GpsHandler implements Runnable {
 			delay = 1000;
 		}
 	}
-	private double distance(double lat1, double lon1, double lat2, double lon2) {
-		  double theta = lon1 - lon2;
-		  double dist = Math.sin(deg2rad(lat1)) * Math.sin(deg2rad(lat2)) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.cos(deg2rad(theta));
-		  dist = Math.acos(dist);
-		  dist = rad2deg(dist);
-		  dist = dist * 60 * 1.1515 * 1.609344 / 1000;
-		  return (dist);
-		}
-		private double deg2rad(double deg) {
-		  return (deg * Math.PI / 180.0);
-		}
-		private double rad2deg(double rad) {
-		  return (rad * 180 / Math.PI);
-		}
+	 public static Double distance(Double lat1, Double lng1, Double lat2, Double lng2) {
+	    double earthRadius = 6371000; //meters
+	    double dLat = Math.toRadians(lat2-lat1);
+	    double dLng = Math.toRadians(lng2-lng1);
+	    double a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+	               Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+	               Math.sin(dLng/2) * Math.sin(dLng/2);
+	    double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+	    double dist = (earthRadius * c);
+
+	    return dist;
+    }
 	public void run() {
 		try {
 			final GPSdEndpoint ep = new GPSdEndpoint(server, port, new ResultParser());
@@ -62,8 +60,11 @@ public class GpsHandler implements Runnable {
 				@Override
 				public void handleTPV(final TPVObject tpv) {
 					//System.setOut(originalStream);
-					Double dist = distance(lastLAT,lastLON,tpv.getLongitude(),tpv.getLongitude());
-					if(dist > 100) {
+					Double dist = distance(lastLAT,lastLON,tpv.getLatitude(),tpv.getLongitude()); // Calculate distance
+					//System.out.println("DO CALC dist:" + dist.toString());
+					if(dist > 100) { //if distance is greater than 100m send update. On first start the distance will be stupid since we hardcore 0,0 as coordinates
+						lastLAT=tpv.getLatitude();
+						lastLON=tpv.getLongitude();
 						String msg = Double.toString(tpv.getLatitude()) +
 								"," +Double.toString(tpv.getLongitude()) +
 								"," +Double.toString(tpv.getSpeed()) +
@@ -72,7 +73,7 @@ public class GpsHandler implements Runnable {
 								"," +Double.toString(dist) +
 								"";
 						sender.SendMsg(msg);
-						LOGGER.info("Sent: " + msg);
+						LOGGER.info("Sent: " + msg + "Distance:" + dist.toString());
 					}
 					//System.setOut(dummyStream);
 				}
