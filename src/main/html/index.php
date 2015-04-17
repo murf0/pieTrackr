@@ -10,21 +10,32 @@ $conn = new mysqli($servername, $username, $password);
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
-$query="SELECT * FROM tracking.raw WHERE user='".$_GET["username"]."' ORDER BY id DESC LIMIT 1;";
+
+$query="SELECT * FROM (SELECT * FROM tracking.raw WHERE user='".$_GET["username"]."' ORDER BY id DESC) temptable GROUP BY topic;";
+
 if(!$result = $conn->query($query)){
     die('There was an error running the query [' . $db->error . ']');
 }
+//Catch if there is no data in the SQL. (otherwise the js will crash)
+$latitude="0.0";
+$longitude="0.0";
+//Loop over all users devices and add the latest location for each device.
 while($row = $result->fetch_assoc()){
-        $timestamp=$row['timestamp'];
+		$PERSON=NULL;
+		$device=strrchr($row['topic'],"/");
+		$device = substr($device, 1);
+		$key=$row['user'].$device;
+		$PERSON[$key]["device"] = $device;
+        $PERSON[$key]["timestamp"]=$row['timestamp'];
+        $PERSON[$key]["latitude"]=$row['latitude'];
+        $PERSON[$key]["longitude"]=$row['longitude'];
+        $PERSON[$key]["altitude"]=$row['altitude'];
+        $PERSON[$key]["user"]=$row['user'];
+        $PERSON[$key]["topic"]="display/".$PERSON[$key]["user"]."/web";
         $latitude=$row['latitude'];
         $longitude=$row['longitude'];
-        $altitude=$row['altitude'];
-        $user=$row['user'];
-        $topic="display/".$user."/web";
-        $device=strrchr($row['topic'],"/");
-        $device = substr($device, 1);
         //die("topic=".$row['topic']." strrchr=".strrchr($row['topic'],"/")." Device=".$device."\n");
-		$markerinfo=gmdate("Y-m-d\T H:i:s", $timestamp)." (CET)<br /><b>".ucfirst($user)." - ".$device."</b><br />".$topic;
+		$PERSON[$key]["markerinfo"]=gmdate("Y-m-d\T H:i:s", $PERSON[$key]["timestamp"])." (CET)<br /><b>".ucfirst($PERSON[$key]["user"])." - ".$PERSON[$key]["device"]."</b><br />".$PERSON[$key]["topic"];
   		 /**
 		device
 		user
@@ -36,6 +47,7 @@ while($row = $result->fetch_assoc()){
 <html>
   <head>
     <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <title>Tracker</title>
     <style type="text/css">
 		html, body, #map {
 			margin: 0;
@@ -99,8 +111,8 @@ while($row = $result->fetch_assoc()){
 			var time=myDate.getUTCFullYear()+"-"+parsed+"-"+myDate.getUTCDate()+" "+myDate.getUTCHours()+":"+myDate.getUTCMinutes()+":"+myDate.getUTCSeconds()+" (CET)";
 			Location.descr = "Speed: " + msgjson.speed + " Alt: " + msgjson.alt;
 			var device = msgjson.topic.substring(msgjson.topic.lastIndexOf("/")+1);
-			msgjson.user = msgjson.user.charAt(0).toUpperCase() + msgjson.user.slice(1);
-			var markerinfo = time+'<br /><b>'+msgjson.user+' - '+device+'</b><br />'+message.destinationName;
+			var user = msgjson.user.charAt(0).toUpperCase() + msgjson.user.slice(1);
+			var markerinfo = time+'<br /><b>'+user+' - '+device+'</b><br />'+message.destinationName;
 			addMarker(msgjson.lat,msgjson.lon,markerinfo, msgjson.user+device, msgjson.user+' - '+device); //add marker based on lattitude and longittude, using timestamp for description for now
 			center = bounds.getCenter(); //center on marker, zooms in to far atm, needs to be fixed!
 			map.fitBounds(bounds);
@@ -264,18 +276,11 @@ while($row = $result->fetch_assoc()){
 			//center = bounds.getCenter();
 		    //map.fitBounds(bounds);
 		    <?php
-		    /**
-		    $timestamp
-			$latitude
-			$longitude
-			$altitude
-			$time_fmt
-			$user
-			$device
-			topic
-			speed
-			**/
-			echo "addMarker(".$latitude.",".$longitude.",'".$markerinfo."','".$user.$device."','".$user." - ".$device."');";
+		    /** Adding all unique devices for the login-username**/
+			foreach($PERSON as $unique => $value) {
+				//echo "console.log(\"unique:".$unique." Value".$value."\");\n				";
+				echo "addMarker(".$value["latitude"].",".$value["longitude"].",'".$value["markerinfo"]."','".$unique."','".$value["user"]." - ".$value["device"]."');\n				";
+			}
 		    ?>
 		    MQTTConnect();
 		};
