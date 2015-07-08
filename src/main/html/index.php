@@ -20,8 +20,8 @@ if(!$result = $conn->query($query)){
 $latitude="0.0";
 $longitude="0.0";
 //Loop over all users devices and add the latest location for each device.
-while($row = $result->fetch_assoc()){
-		$PERSON=NULL;
+$PERSON=NULL;
+while($row = $result->fetch_assoc()) {
 		$device=strrchr($row['topic'],"/");
 		$device = substr($device, 1);
 		$key=$row['user'].$device;
@@ -41,6 +41,7 @@ while($row = $result->fetch_assoc()){
 		user
 		speed
 		**/
+		
 }
 ?>
 <!DOCTYPE html>
@@ -277,6 +278,9 @@ while($row = $result->fetch_assoc()){
 		    //map.fitBounds(bounds);
 		    <?php
 		    /** Adding all unique devices for the login-username**/
+		    echo "/*";
+		    print_r($PERSON);
+		    echo "*/";
 			foreach($PERSON as $unique => $value) {
 				//echo "console.log(\"unique:".$unique." Value".$value."\");\n				";
 				echo "addMarker(".$value["latitude"].",".$value["longitude"].",'".$value["markerinfo"]."','".$unique."','".$value["user"]." - ".$value["device"]."');\n				";

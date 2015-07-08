@@ -170,6 +170,7 @@ public class InitiateMQTT implements MqttCallback {
 			}
 			if( sql != null && obj != null) {
 				LOGGER.finer("logging to SQL" + obj.toString());
+				
 				sql.addRow(obj);
 			}
 			if( obj != null) {

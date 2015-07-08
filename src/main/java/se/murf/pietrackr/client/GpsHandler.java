@@ -20,8 +20,7 @@ public class GpsHandler implements Runnable {
 	String server="NONE";
 	InitiateMQTT sender;
 	private final static Logger LOGGER = Logger.getLogger(GpsHandler.class.getName());
-	Double lastLON=0.0,lastLAT=0.0;
-	
+	Double lastLON=0.0,lastLAT=0.0, time_diff=0.0, time_last=0.0;
 	PrintStream originalStream = System.out;
 	PrintStream dummyStream    = new PrintStream(new OutputStream(){
 	    @Override
@@ -61,10 +60,12 @@ public class GpsHandler implements Runnable {
 				public void handleTPV(final TPVObject tpv) {
 					//System.setOut(originalStream);
 					Double dist = distance(lastLAT,lastLON,tpv.getLatitude(),tpv.getLongitude()); // Calculate distance
+					time_diff = tpv.getTimestamp() - time_last;
 					//System.out.println("DO CALC dist:" + dist.toString());
-					if(dist > 100) { //if distance is greater than 100m send update. On first start the distance will be stupid since we hardcore 0,0 as coordinates
+					if(dist > 100 || time_diff > 3600) { //if distance is greater than 100m send update. On first start the distance will be stupid since we hardcore 0,0 as coordinates
 						lastLAT=tpv.getLatitude();
 						lastLON=tpv.getLongitude();
+						time_last = tpv.getTimestamp();
 						String msg = Double.toString(tpv.getLatitude()) +
 								"," +Double.toString(tpv.getLongitude()) +
 								"," +Double.toString(tpv.getSpeed()) +

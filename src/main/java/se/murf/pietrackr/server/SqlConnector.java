@@ -37,21 +37,23 @@ public class SqlConnector {
         cpds.setMinPoolSize(5);
         cpds.setAcquireIncrement(5);
         cpds.setMaxPoolSize(20);
+        cpds.setInitialPoolSize(5);
         cpds.setMaxStatements(180);
-        
+        cpds.setMinPoolSize(5);
+        cpds.setAcquireIncrement(5);
+        cpds.setAcquireRetryAttempts(0);
+        cpds.setAcquireRetryDelay(2000);
+        cpds.setMaxPoolSize(20);
+        cpds.setMaxStatements(180);
+        cpds.setTestConnectionOnCheckout(true);
 		url = config.getProperty("sqlUrl");
 		user = config.getProperty("sqlUser");
 		password = config.getProperty("sqlPassword");
-		try {
-			cpds.setDriverClass("com.mysql.jdbc.Driver"); //loads the jdbc driver
-	        cpds.setJdbcUrl(url);
-	        cpds.setUser(user);
-	        cpds.setPassword(password);
-	        con = cpds.getConnection();
-	        pst = con.prepareStatement("INSERT INTO raw(timestamp,device,user,topic,latitude,longitude,speed,dist,altitude) VALUES(?,?,?,?,?,?,?,?,?)");
-	} catch (SQLException ex) {
-            LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
-        }
+		cpds.setDriverClass("com.mysql.jdbc.Driver"); //loads the jdbc driver
+		cpds.setJdbcUrl(url);
+		cpds.setUser(user);
+		cpds.setPassword(password);
+		
 	}
 
 	/*
@@ -69,9 +71,12 @@ public class SqlConnector {
 		comment VARCHAR(300)
 		);
 	 */
+
 	public void addRow(JSONObject obj) {
 		try {
 			if (obj.getString("_type").equals("location")) {
+				con = cpds.getConnection();
+		        pst = con.prepareStatement("INSERT INTO raw(timestamp,device,user,topic,latitude,longitude,speed,dist,altitude) VALUES(?,?,?,?,?,?,?,?,?)");
 				try {
 					LOGGER.finer("Add row to SQL");
 					pst.setLong(1, obj.getInt("tst")); //timestamp
@@ -88,6 +93,8 @@ public class SqlConnector {
 				} catch (SQLException ex) {
 		            LOGGER.log(Level.WARNING, ex.getMessage(), ex);
 				}
+				pst.close();
+				con.close();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -33,7 +33,8 @@ public class Server {
 		 */
 		LOGGER.setLevel(Level.FINEST);
 		LOGGER.info("Loading Configruation Input");
-		config = new Configuration("server.config");
+		String CONFIGFILE = System.getProperty("config", "client.config");
+		config = new Configuration(CONFIGFILE);
 		LOGGER.info("Connect to MySQL");
 		SqlConnector sql = new SqlConnector(config);
 		
