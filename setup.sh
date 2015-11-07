@@ -9,7 +9,7 @@ cd /home
 git clone https://github.com/murf0/pieTrackr.git
 cd pieTrackr
 mvn verify dependency:copy-dependencies
-mvn package
+#mvn package
 
 echo "mqttTopic=${env_mqttTopic}
 mqttServer=${env_mqttServer}
@@ -28,7 +28,9 @@ logLevel=FINEST
 #FINEST or it will default to INFO
 #ALL CONFIG FINE FINER FINEST INFO OFF SEVERE WARNING if not set to FINEST" > client.config
 
-ls -l
+#java -jar ./target/pietrackr-0.0.1-SNAPSHOT.jar
+
+find .
 
 #echo "" >
 
