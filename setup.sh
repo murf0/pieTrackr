@@ -8,7 +8,8 @@ export DEBIAN_FRONTEND=noninteractive
 cd /home
 git clone https://github.com/murf0/pieTrackr.git
 cd pieTrackr
-mvn verify dependency:copy-dependencies
+mvn --batch-mode verify dependency:copy-dependencies | grep -v 'Download.* http://'
+mvn -B
 #mvn package
 
 echo "mqttTopic=${env_mqttTopic}
@@ -28,9 +29,8 @@ logLevel=FINEST
 #FINEST or it will default to INFO
 #ALL CONFIG FINE FINER FINEST INFO OFF SEVERE WARNING if not set to FINEST" > client.config
 
-#java -jar ./target/pietrackr-0.0.1-SNAPSHOT.jar
-
 find .
+java -jar ./target/pietrackr-0.0.1-SNAPSHOT-jar-with-dependencies.jar
 
 #echo "" >
 
