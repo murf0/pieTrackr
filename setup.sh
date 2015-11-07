@@ -9,7 +9,6 @@ cd /home
 git clone https://github.com/murf0/pieTrackr.git
 cd pieTrackr
 mvn --batch-mode verify dependency:copy-dependencies | grep -v 'Download.* http://'
-mvn -B
 #mvn package
 
 echo "mqttTopic=${env_mqttTopic}
