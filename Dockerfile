@@ -1,25 +1,11 @@
 FROM phusion/baseimage:latest
 
-MAINTAINER mikael.mellgren@ferrologic.se
+MAINTAINER mikael@murf.se
 
 EXPOSE 80
 EXPOSE 443
 
 ENV DBG=TRUE
-
-ENV env_mqttTopic=
-ENV env_mqttServer=
-ENV env_mqttPort=
-ENV env_mqttClientid=
-ENV env_mqttRepublish=
-ENV env_mqttKeystore=
-ENV env_mqttKeystorePW=
-ENV env_mqttClean=true
-ENV env_mqttUsername=
-ENV env_mqttPassword=
-ENV env_sqlUrl=
-ENV env_sqlUser=
-ENV env_sqlPassword=
 
 COPY build.sh /build.sh
 RUN chmod 755 /build.sh
