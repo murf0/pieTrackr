@@ -38,7 +38,7 @@ public class InitiateMQTT implements MqttCallback {
 		this.ClientID=config.getProperty("mqttClientid");
 		this.Republish=config.getProperty("mqttRepublish");
 		//pop off the # for server publishing
-		if(this.publishtopic.indexOf("#")) {
+		if(this.publishtopic.indexOf("#") > 0) {
 			this.publishtopic=this.publishtopic.substring(0,this.publishtopic.indexOf("#"));
 		}
 		options = new MqttConnectOptions();
