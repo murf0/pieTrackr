@@ -27,7 +27,8 @@ sqlPassword=${env_sqlPassword}
 logLevel=${DBG}" > client.config
 
 mkdir -p /etc/service/pietracker
-echo "java -jar /home/pieTrackr/target/pietrackr-0.0.1-SNAPSHOT-jar-with-dependencies.jar" > /etc/service/pietracker/run
+echo "#!/bin/sh
+java -jar /home/pieTrackr/target/pietrackr-0.0.1-SNAPSHOT-jar-with-dependencies.jar" > /etc/service/pietracker/run
 chmod 755 /etc/service/pietracker/run
 
 rm -- "$0"
