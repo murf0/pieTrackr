@@ -24,13 +24,10 @@ mqttUsername=${env_mqttUsername}
 sqlUrl=${env_sqlUrl}
 sqlUser=${env_sqlUser}
 sqlPassword=${env_sqlPassword}
-logLevel=FINEST
-#FINEST or it will default to INFO
-#ALL CONFIG FINE FINER FINEST INFO OFF SEVERE WARNING if not set to FINEST" > client.config
+logLevel=${DBG}" > client.config
 
-find .
-java -jar ./target/pietrackr-0.0.1-SNAPSHOT-jar-with-dependencies.jar
-
-#echo "" >
+mkdir -p /etc/service/pietracker
+echo "java -jar /home/pieTrackr/target/pietrackr-0.0.1-SNAPSHOT-jar-with-dependencies.jar" > /etc/service/pietracker/run
+chmod 755 /etc/service/pietracker/run
 
 rm -- "$0"

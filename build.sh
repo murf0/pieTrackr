@@ -16,8 +16,6 @@ apt-get -y --no-install-recommends install unzip git maven openjdk-8-jre openjdk
 apt-get -y remove openjdk-7-jre openjdk-7-jre-headless
 update-alternatives --config javac
 update-alternatives --config java
-java -version
 
-#mkdir -p /etc/service/ /etc/my_init.d
 apt-get -y autoremove
 rm -- "$0"
