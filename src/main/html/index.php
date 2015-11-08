@@ -11,7 +11,8 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-$query="SELECT * FROM (SELECT * FROM tracking.raw WHERE user='".$_GET["username"]."' ORDER BY id DESC) temptable GROUP BY topic;";
+#$query="SELECT * FROM (SELECT * FROM tracking.raw WHERE user='".$_GET["username"]."' ORDER BY id DESC) temptable GROUP BY topic;";
+$query="SELECT * from tracking.raw where id IN (SELECT max(id) FROM tracking.raw group by topic) AND user='".$_GET["username"]."';";
 
 if(!$result = $conn->query($query)){
     die('There was an error running the query [' . $db->error . ']');
@@ -41,7 +42,7 @@ while($row = $result->fetch_assoc()) {
 		user
 		speed
 		**/
-		
+
 }
 ?>
 <!DOCTYPE html>
@@ -74,7 +75,7 @@ while($row = $result->fetch_assoc()) {
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js" type="text/javascript"></script>
     <script type="text/javascript" src="config.js" type="text/javascript"></script>
     <script type="text/javascript">
-		//MQTT Stuff 
+		//MQTT Stuff
 		function MQTTConnect() {
 			mqtt = new Paho.MQTT.Client(host,port,"web_" + parseInt(Math.random() * 100,10));
 			var options = {
@@ -139,13 +140,13 @@ while($row = $result->fetch_assoc()) {
 		    setTimeout(MQTTConnect, reconnectTimeout);
 		}
 		function getURLParameters(paramName) {
-			var sURL = window.document.URL.toString();  
+			var sURL = window.document.URL.toString();
 		    if (sURL.indexOf("?") > 0)
 		    {
-		       var arrParams = sURL.split("?");         
-		       var arrURLParams = arrParams[1].split("&");      
+		       var arrParams = sURL.split("?");
+		       var arrURLParams = arrParams[1].split("&");
 		       var arrParamNames = new Array(arrURLParams.length);
-		       var arrParamValues = new Array(arrURLParams.length);     
+		       var arrParamValues = new Array(arrURLParams.length);
 		       var i = 0;
 		       for (i=0;i<arrURLParams.length;i++)
 		       {
@@ -156,7 +157,7 @@ while($row = $result->fetch_assoc()) {
 		        else
 		            arrParamValues[i] = "No Value";
 		       }
-		
+
 		       for (i=0;i<arrURLParams.length;i++)
 		       {
 		                if(arrParamNames[i] == paramName){
@@ -166,15 +167,15 @@ while($row = $result->fetch_assoc()) {
 		       }
 		       return null;
 		    }
-		
+
 		}
-		
+
 		//Google Maps Stuff
 		function addMarker(lat, lng, info, person, nick) {
 			console.log('addMarker -- ' + lat + ' ' + lng + ' ' + info + ' ' + person + ' ' + nick);
-			
+
 			var pinColour = 'blue' //default colour of pin
-				
+
 			//check the array if the person is already added to the array, if not add it.
 			if (personArray.indexOf(person) < 0){
 				personArray.push(person); //add the new person to the array
@@ -187,7 +188,7 @@ while($row = $result->fetch_assoc()) {
 				//create a new item for person
 				latestlocations.push({
 					key: 	personArray.indexOf(person),
-					value: 	0, 
+					value: 	0,
 				});
 
 			}
@@ -210,7 +211,7 @@ while($row = $result->fetch_assoc()) {
 		        animation: google.maps.Animation.DROP
 
 			});
-			
+
 			markers[x] = marker; //add to the markers array so we can call them later
 			latestlocations[personArray.indexOf(person)] =	markers[x]; //update array with their latest location
 
@@ -226,15 +227,15 @@ while($row = $result->fetch_assoc()) {
 					currentPopup.close();
 					currentPopup = null;
 				}
-				
+
 				//zoom in on the marker
-				
+
     			map.setCenter(marker.getPosition());
     			//open the info box popup
 				popup.open(map, marker);
-				var listener = google.maps.event.addListener(map, "idle", function() { 
-					if (map.getZoom() > 15) map.setZoom(15); 
-					google.maps.event.removeListener(listener); 
+				var listener = google.maps.event.addListener(map, "idle", function() {
+					if (map.getZoom() > 15) map.setZoom(15);
+					google.maps.event.removeListener(listener);
 				});
 				currentPopup = popup;
 			});
@@ -269,7 +270,7 @@ while($row = $result->fetch_assoc()) {
 					style: google.maps.NavigationControlStyle.ZOOM_PAN
 				}
 			});
-			
+
 			var legend = document.getElementById('legend');
 
 		    map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
@@ -288,11 +289,11 @@ while($row = $result->fetch_assoc()) {
 		    ?>
 		    MQTTConnect();
 		};
-		
+
 		//Start The Goddamn Program
 		var username = getURLParameters("username");
 		var password = getURLParameters("password");
-		
+
 		var personArray = new Array();
 		var pinColourArray = new Array('red','blue','yellow','pink','green','lightblue','orange','purple','red-dot','blue-dot','yellow-dot','pink-dot','green-dot','lightblue-dot','orange-dot','purple-dot');
 		var center = null;
