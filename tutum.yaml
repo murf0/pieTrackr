@@ -1,0 +1,20 @@
+pieTracker:
+  image: 'murf/pietrackr:latest'
+  restart: on_failure
+  links:
+    - mariadb
+  environment:
+    - DBG=FINEST
+    - env_mqttTopic=tracker/
+    - env_mqttServer=mqtt.murf.se
+    - env_mqttPort=8883
+    - env_mqttClientid=pieTracker-server
+    - env_mqttRepublish=display/<user>/web
+    - env_mqttKeystore=/usr/lib/jvm/java-8-openjdk-amd64/jre/lib/security/cacerts
+    - env_mqttKeystorePW=changeit
+    - env_mqttClean=true
+    - env_mqttUsername=MyPieTrackrUser
+    - env_mqttPassword=
+    - env_sqlUrl=jdbc:mysql://mariadb:3306/tracking
+    - env_sqlUser=MyPieTrackrUser
+    - env_sqlPassword=
