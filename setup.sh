@@ -28,6 +28,7 @@ logLevel=${DBG}" > client.config
 
 mkdir -p /etc/service/pietracker
 echo "#!/bin/sh
+cd /home/pieTrackr
 java -jar /home/pieTrackr/target/pietrackr-0.0.1-SNAPSHOT-jar-with-dependencies.jar" > /etc/service/pietracker/run
 chmod 755 /etc/service/pietracker/run
 
