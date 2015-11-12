@@ -10,11 +10,11 @@ git clone https://github.com/murf0/pieTrackr.git
 cd pieTrackr
 mvn --batch-mode verify dependency:copy-dependencies
 #mvn package
-
+RAND=$(openssl rand -base64 4 | tr -dc 'a-zA-Z0-9')
 echo "mqttTopic=${env_mqttTopic}
 mqttServer=${env_mqttServer}
 mqttPort=${env_mqttPort}
-mqttClientid=${env_mqttClientid}
+mqttClientid=${env_mqttClientid}-${RAND}
 mqttRepublish=${env_mqttRepublish}
 mqttKeystore=${env_mqttKeystore}
 mqttKeystorePW=${env_mqttKeystorePW}
