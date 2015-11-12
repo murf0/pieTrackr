@@ -64,12 +64,12 @@ public class InitiateMQTT implements MqttCallback {
 			options.setPassword(config.getProperty("mqttPassword").toCharArray());
 			options.setUserName(config.getProperty("mqttUsername"));
 			client.setCallback(this);
-			LOGGER.fine("Before Connect");
+			LOGGER.info("Before Connect");
 			connect();
-			LOGGER.fine("After Connect");
+			LOGGER.info("After Connect");
 
 		} catch (MqttException e) {
-			LOGGER.fine("Exception in initiation");
+			LOGGER.info("Exception in initiation");
 			e.printStackTrace();
 		}
 	}
@@ -80,7 +80,7 @@ public class InitiateMQTT implements MqttCallback {
 			conToken.waitForCompletion();
 			SendMsg("PCon");
 		} catch (Exception e) {
-			LOGGER.fine("Exception in connet();");
+			LOGGER.info("Exception in connet();");
 			e.printStackTrace();
 		}
 	}
@@ -192,6 +192,7 @@ public class InitiateMQTT implements MqttCallback {
 
 	public void connectionLost(Throwable arg0) {
 		try {
+			LOGGER.info("Connection Lost");
 			Thread.sleep(10000);
 			connect();
 		} catch (InterruptedException e) {
